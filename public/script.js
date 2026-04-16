@@ -1,10 +1,9 @@
 let tasks = [];
 let filteredTasks = [];
 let draggedTaskIndex = null;
-let userToken = localStorage.getItem('token'); // Recupera o token salvo
+let userToken = localStorage.getItem('token');
 
 // --- CONTROLE DE ACESSO ---
-
 function checkAuth() {
     if (userToken) {
         document.getElementById('login-screen').style.display = 'none';
@@ -62,13 +61,10 @@ function handleLogout() {
     checkAuth();
 }
 
-// --- LOGICA DE TAREFAS COM TOKEN ---
-
+// --- LOGICA DE TAREFAS ---
 async function loadTasks() {
     try {
-        const response = await fetch('/api/tasks', {
-            headers: { 'Authorization': userToken }
-        });
+        const response = await fetch('/api/tasks', { headers: { 'Authorization': userToken } });
         if (response.status === 401 || response.status === 403) return handleLogout();
         tasks = await response.json();
         renderTasks();
@@ -79,16 +75,11 @@ async function saveTasks() {
     try {
         await fetch('/api/tasks', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': userToken 
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
             body: JSON.stringify(tasks)
         });
     } catch (error) { console.error("Erro ao salvar:", error); }
 }
-
-// (Mantenha as funções auxiliares de urgência, toggle inputs, renderTasks, exportToExcel, drop, addTask, etc., que já tínhamos, apenas garantindo que chamem saveTasks())
 
 function getUrgencyIcon(urgency) {
     if(urgency === 'alta') return '<span class="urg-alta">🔴 Alta</span>';
@@ -98,14 +89,23 @@ function getUrgencyIcon(urgency) {
 
 function toggleRequesterInput() {
     const sel = document.getElementById('requesterSelect'), cust = document.getElementById('customRequesterInput');
-    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } 
-    else { cust.style.display = 'none'; cust.value = ''; }
+    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
 }
 
 function toggleDeptInput() {
     const sel = document.getElementById('deptSelect'), cust = document.getElementById('customDeptInput');
-    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } 
-    else { cust.style.display = 'none'; cust.value = ''; }
+    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
+}
+
+// NOVA FUNÇÃO: Abre e fecha a setinha sem quebrar as datas
+function toggleDetailsCustom(index) {
+    const details = document.getElementById(`details-${index}`);
+    const btn = document.getElementById(`btn-toggle-${index}`);
+    const isOpen = !details.open;
+    details.open = isOpen;
+    tasks[index].isExpanded = isOpen;
+    btn.innerText = isOpen ? '▼' : '▶';
+    saveTasks();
 }
 
 function renderTasks() {
@@ -173,6 +173,9 @@ function renderTasks() {
         titleRow.className = 'task-title-row';
         titleRow.innerHTML = `
             <div class="task-title ${task.status === 'concluido' ? 'completed' : ''}">
+                <button id="btn-toggle-${taskIndex}" class="btn-toggle-details" onclick="toggleDetailsCustom(${taskIndex})">
+                    ${task.isExpanded ? '▼' : '▶'}
+                </button>
                 <span class="task-text">${task.text}</span>
                 <select class="status-select status-${task.status}" onchange="updateStatus(${taskIndex}, this.value)">
                     <option value="a-fazer" ${task.status === 'a-fazer' ? 'selected' : ''}>⏳ Fazer</option>
@@ -191,19 +194,24 @@ function renderTasks() {
                     </span>
                 ` : ''}
             </div>
-            <button class="btn-delete" onclick="deleteTask(${taskIndex})">🗑️</button>
+            
+            <div class="task-counters">
+                <span class="counter-tag" title="Subtarefas">📋 ${task.subtasks.length}</span>
+                <span class="counter-tag" title="Comentários">💬 ${task.comments.length}</span>
+                <button class="btn-delete" onclick="deleteTask(${taskIndex})">🗑️</button>
+            </div>
         `;
 
         li.appendChild(titleRow);
 
         const detailsWrap = document.createElement('details');
-        detailsWrap.className = 'details-wrap';
+        detailsWrap.id = `details-${taskIndex}`;
+        detailsWrap.className = 'details-wrap custom-details';
         if (task.isExpanded) detailsWrap.open = true;
-        detailsWrap.ontoggle = () => { tasks[taskIndex].isExpanded = detailsWrap.open; };
 
+        // Escondendo a barra de resumo original do HTML para usar a nossa
         const summary = document.createElement('summary');
-        summary.className = 'details-summary';
-        summary.innerText = `▶ Detalhes (${task.subtasks.length} sub / ${task.comments.length} com)`;
+        summary.style.display = 'none';
         detailsWrap.appendChild(summary);
 
         const commentBox = document.createElement('div');
@@ -270,11 +278,7 @@ function renderTasks() {
     Object.keys(counts).forEach(k => document.getElementById(`count-${k}`).innerText = counts[k]);
 }
 
-function updateStatus(i, s) { 
-    tasks[i].status = s; 
-    tasks[i].completedAt = (s === 'concluido') ? new Date().toISOString() : null;
-    renderTasks(); saveTasks(); 
-}
+function updateStatus(i, s) { tasks[i].status = s; tasks[i].completedAt = (s === 'concluido') ? new Date().toISOString() : null; renderTasks(); saveTasks(); }
 function updateCompletionDate(i, d) { tasks[i].completedAt = new Date(d).toISOString(); renderTasks(); saveTasks(); }
 function updateDeadline(i, d) { tasks[i].deadline = d; renderTasks(); saveTasks(); }
 function deleteTask(i) { tasks.splice(i, 1); renderTasks(); saveTasks(); }
@@ -287,13 +291,8 @@ function addTask() {
     if(!t.value) return;
     let req = sReq.value === 'Outro' ? cReq.value.trim() : sReq.value;
     let dept = sDept.value === 'Outro' ? cDept.value.trim() : sDept.value;
-    tasks.push({ 
-        text: t.value, requester: req || 'Eu mesmo', dept: dept || 'Geral', 
-        deadline: d.value, urgency: u.value, status: 'a-fazer', completedAt: null,
-        subtasks: [], comments: [], isExpanded: false 
-    });
-    t.value = ''; sReq.value = ''; cReq.value = ''; cReq.style.display = 'none'; 
-    sDept.value = ''; cDept.value = ''; cDept.style.display = 'none'; d.value = '';
+    tasks.push({ text: t.value, requester: req || 'Eu mesmo', dept: dept || 'Geral', deadline: d.value, urgency: u.value, status: 'a-fazer', completedAt: null, subtasks: [], comments: [], isExpanded: false });
+    t.value = ''; sReq.value = ''; cReq.value = ''; cReq.style.display = 'none'; sDept.value = ''; cDept.value = ''; cDept.style.display = 'none'; d.value = '';
     renderTasks(); saveTasks();
 }
 
@@ -331,5 +330,4 @@ function drop(ev, newStatus) {
     }
 }
 
-// Inicializa
 checkAuth();
