@@ -1,36 +1,89 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #121212; color: #e0e0e0; padding: 20px; }
-.container { max-width: 1200px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+.container { max-width: 1200px; margin: 0 auto; background: #181818; padding: 20px; border-radius: 8px; }
 h1 { text-align: center; margin-bottom: 20px; }
 
-.toolbar, .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
-input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #333; background: #2d2d2d; color: #fff; }
+.toolbar, .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+input, select, button { padding: 8px 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; }
 button { background: #3182ce; cursor: pointer; border: none; font-weight: bold; }
+button:hover { background: #2b6cb0; }
 .btn-export { background: #38a169; }
 
-.kanban-board { display: flex; flex-direction: column; gap: 20px; }
-.status-section { background: #252525; border-radius: 8px; border: 1px solid #333; }
-.status-header { padding: 10px; border-bottom: 1px solid #333; }
-.task-list { list-style: none; padding: 10px; }
+/* --- NOVO ESTILO: TABELA MINIMALISTA --- */
+.kanban-board { display: flex; flex-direction: column; gap: 15px; }
 
-.task-item { background: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; }
-.task-title-row { display: flex; justify-content: space-between; align-items: center; }
-.task-title { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; flex: 1; }
-.task-text { font-weight: bold; }
-.completed .task-text { text-decoration: line-through; color: #888; }
+/* Cabeçalho das colunas */
+.list-header { 
+    display: grid; 
+    grid-template-columns: minmax(250px, 3fr) 1.5fr 120px 100px 130px 100px 40px; 
+    gap: 10px; 
+    padding: 10px 15px; 
+    background: #222; 
+    border-radius: 6px; 
+    font-size: 12px; 
+    font-weight: bold; 
+    color: #888; 
+    border: 1px solid #333;
+}
 
-.meta-tag { font-size: 11px; background: #1a202c; padding: 4px; border-radius: 4px; border: 1px solid #333; }
-.atrasado-tag { background: #742a2a; color: #fff; }
-.done-tag { background: #1c3829; color: #4ade80; }
-.date-edit { background: transparent; border: none; width: 105px; color: inherit; font-size: 11px; }
+.status-section { background: transparent; border-radius: 8px; }
+.status-header { padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 5px; }
+.header-a-fazer h2 { color: #ecc94b; font-size: 16px; }
+.header-em-andamento h2 { color: #63b3ed; font-size: 16px; }
+.header-concluido h2 { color: #68d391; font-size: 16px; }
+.task-list { list-style: none; }
 
-.task-counters { display: flex; align-items: center; gap: 8px; }
-.counter-tag { font-size: 10px; background: #1a1a1a; padding: 2px 5px; border-radius: 3px; color: #aaa; }
-.btn-toggle-details { background: transparent; color: #888; font-size: 14px; }
+/* A linha fina da tarefa */
+.task-row {
+    display: grid;
+    grid-template-columns: minmax(250px, 3fr) 1.5fr 120px 100px 130px 100px 40px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 15px;
+    background: #1e1e1e;
+    border-bottom: 1px solid #2d2d2d;
+    transition: background 0.2s;
+}
+.task-row:hover { background: #282828; }
 
-.details-wrap { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #444; }
-.comments-section, .subtask-list { margin-bottom: 10px; }
-.comment-item { font-size: 12px; background: #1a1a1a; padding: 5px; margin-bottom: 2px; display: flex; justify-content: space-between; }
+.task-title-cell { font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.task-title-cell:hover { color: #63b3ed; text-decoration: underline; }
+.completed-text { text-decoration: line-through; color: #666; }
+
+/* Tags e Inputs dentro da linha */
+.meta-tag { font-size: 11px; background: #2d2d2d; padding: 4px 6px; border-radius: 4px; display: inline-block; color: #ccc;}
+.date-edit { padding: 2px; font-size: 11px; background: transparent; border: 1px solid transparent; width: 100%; cursor: pointer;}
+.date-edit:hover { border: 1px solid #555; }
+.date-edit::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+/* Status Sólido (Estilo Monday) */
+.status-select { font-size: 12px; font-weight: bold; border: none; text-align: center; cursor: pointer; width: 100%; }
+.status-select.a-fazer { background: #ecc94b; color: #000; }
+.status-select.em-andamento { background: #63b3ed; color: #000; }
+.status-select.concluido { background: #4ade80; color: #000; }
+
+.urgency-select { font-size: 12px; background: transparent; border: 1px solid #444; width: 100%; }
+
+.row-counters { display: flex; gap: 8px; justify-content: center; cursor: pointer; }
+.row-counters span { font-size: 11px; background: #333; padding: 3px 6px; border-radius: 10px; color: #aaa; }
+.row-counters:hover span { background: #555; color: #fff; }
+.btn-delete { background: transparent; color: #fc8181; font-size: 14px; padding: 0; }
+
+/* --- MODAL (A JANELA FLUTUANTE) --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.modal-content { background: #1e1e1e; width: 90%; max-width: 700px; max-height: 90vh; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333;}
+.modal-header { padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #252525; border-radius: 8px 8px 0 0;}
+.modal-header h2 { font-size: 18px; color: #fff; }
+.btn-close-modal { background: transparent; color: #aaa; font-size: 20px; cursor: pointer; }
+.btn-close-modal:hover { color: #fff; }
+.modal-body { padding: 20px; overflow-y: auto; }
+
+/* Design interno do Modal */
+.modal-section-title { font-size: 14px; color: #888; margin: 15px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+.subtask-item-modal { display: flex; align-items: center; gap: 10px; background: #252525; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #333; }
+.comment-item-modal { background: #252525; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; color: #ccc; display: flex; justify-content: space-between;}
+.input-flex { display: flex; gap: 10px; margin-top: 10px; }
+.input-flex input { flex: 1; }
 
 /* LOGIN */
 #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000; }
