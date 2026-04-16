@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Organizador de Dia</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Planejamento do Dia</h1>
+        
+        <div class="toolbar">
+            <select id="filterMonth" onchange="renderTasks()">
+                <option value="">📅 Mês de Conclusão (Todos)</option>
+                <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+                <option value="03">Março</option><option value="04">Abril</option>
+                <option value="05">Maio</option><option value="06">Junho</option>
+                <option value="07">Julho</option><option value="08">Agosto</option>
+                <option value="09">Setembro</option><option value="10">Outubro</option>
+                <option value="11">Novembro</option><option value="12">Dezembro</option>
+            </select>
+            <select id="filterDept" onchange="renderTasks()">
+                <option value="">🏢 Todos os setores</option>
+            </select>
+            <select id="filterRequester" onchange="renderTasks()">
+                <option value="">🔍 Todos os solicitantes</option>
+            </select>
+            <select id="filterUrgency" onchange="renderTasks()">
+                <option value="">⚠️ Todas as urgências</option>
+                <option value="alta">🔴 Alta</option>
+                <option value="media">🟡 Média</option>
+                <option value="baixa">🟢 Baixa</option>
+            </select>
+            <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel</button>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="taskInput" placeholder="Nova tarefa...">
+            
+            <select id="requesterSelect" onchange="toggleRequesterInput()">
+                <option value="">👤 Solicitante...</option>
+                <option value="Aline">Aline</option>
+                <option value="Andrey">Andrey</option>
+                <option value="Gabriel">Gabriel</option>
+                <option value="Outro">Outro...</option>
+            </select>
+            <input type="text" id="customRequesterInput" placeholder="Nome..." style="display: none;">
+
+            <select id="deptSelect" onchange="toggleDeptInput()">
+                <option value="">🏢 Setor...</option>
+                <option value="RH">RH</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Logística">Logística</option>
+                <option value="Vendas">Vendas</option>
+                <option value="Outro">Outro...</option>
+            </select>
+            <input type="text" id="customDeptInput" placeholder="Qual setor?" style="display: none;">
+            
+            <input type="date" id="deadlineInput">
+            <select id="urgencyInput" class="urgency-select">
+                <option value="baixa">🟢 Baixa</option>
+                <option value="media" selected>🟡 Média</option>
+                <option value="alta">🔴 Alta</option>
+            </select>
+            <button onclick="addTask()">Adicionar</button>
+        </div>
+
+        <div class="kanban-board">
+            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'a-fazer')">
+                <summary class="status-header header-a-fazer">
+                    <h2>⏳ A Fazer (<span id="count-a-fazer">0</span>)</h2>
+                </summary>
+                <ul id="taskList-a-fazer" class="task-list"></ul>
+            </details>
+
+            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'em-andamento')">
+                <summary class="status-header header-em-andamento">
+                    <h2>🚀 Em Andamento (<span id="count-em-andamento">0</span>)</h2>
+                </summary>
+                <ul id="taskList-em-andamento" class="task-list"></ul>
+            </details>
+
+            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'concluido')">
+                <summary class="status-header header-concluido">
+                    <h2>✅ Concluído (<span id="count-concluido">0</span>)</h2>
+                </summary>
+                <ul id="taskList-concluido" class="task-list"></ul>
+            </details>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
