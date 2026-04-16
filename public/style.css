@@ -23,14 +23,18 @@ button:hover { background-color: #2b6cb0; }
 .btn-delete { background-color: transparent; border: none; font-size: 16px; cursor: pointer; padding: 0; margin-left: 10px; }
 
 /* =========================================
-   4. LISTAS VERTICAIS (O FORMATO QUE VOCÊ PEDIU)
+   4. LISTAS VERTICAIS E CABEÇALHOS
    ========================================= */
 .kanban-board { display: flex; flex-direction: column; gap: 20px; }
 .status-section { width: 100%; background-color: #252525; border-radius: 8px; border: 1px solid #333; }
 .status-header { padding: 15px; cursor: pointer; user-select: none; border-bottom: 1px solid #333; }
-.header-a-fazer h2 { color: #ecc94b; font-size: 16px; }
-.header-em-andamento h2 { color: #63b3ed; font-size: 16px; }
-.header-concluido h2 { color: #68d391; font-size: 16px; }
+
+/* 🔥 CORREÇÃO DA SETINHA: Força o título a ficar na mesma linha da seta */
+.status-header h2 { display: inline-block; margin: 0; font-size: 16px; vertical-align: middle; }
+
+.header-a-fazer h2 { color: #ecc94b; }
+.header-em-andamento h2 { color: #63b3ed; }
+.header-concluido h2 { color: #68d391; }
 .task-list { list-style: none; padding: 10px; min-height: 50px; }
 
 /* =========================================
@@ -39,8 +43,11 @@ button:hover { background-color: #2b6cb0; }
 .task-item { background-color: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; cursor: grab; }
 .task-item.dragging { opacity: 0.5; }
 .task-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
-.task-title { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-.task-text { font-weight: bold; font-size: 15px; color: #fff; }
+
+/* 🔥 CORREÇÃO DOS CARDS E STATUS: Mudamos para "row" (linha) e ativamos o "wrap" para quebrar a linha se a tela for pequena */
+.task-title { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; flex: 1; }
+
+.task-text { font-weight: bold; font-size: 15px; color: #fff; margin-right: 5px; }
 .completed .task-text { text-decoration: line-through; color: #888; }
 
 .meta-tag { font-size: 12px; background-color: #1a202c; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; width: fit-content; }
@@ -51,7 +58,7 @@ button:hover { background-color: #2b6cb0; }
 .date-edit { padding: 2px 4px; font-size: 11px; background: transparent; border: none; color: inherit; font-family: inherit; width: 110px;}
 .date-edit::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-/* A SUA REGRA DA TAG VERDE */
+/* TAG DE CONCLUSÃO VERDE (Que você pediu) */
 .meta-tag.done-tag { background: #1c3829; color: #4ade80; border-color: #22543d; font-weight: bold; }
 .meta-tag.done-tag .date-edit { color: #4ade80; border-bottom-color: #38a169; }
 
