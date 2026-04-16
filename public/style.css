@@ -1,83 +1,17 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; padding: 20px 10px; }
-.container { background: #1e1e1e; width: 100%; max-width: 950px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 15px; }
-h1 { text-align: center; margin-bottom: 15px; color: #ffffff; font-size: 18px; }
-
-/* Barra de Filtros e Exportação */
-.toolbar { margin-bottom: 10px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; align-items: center; background: #151515; padding: 10px; border-radius: 6px; border: 1px solid #333;}
-.toolbar select { padding: 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #252525; color: #e0e0e0; min-width: 150px; outline: none; cursor: pointer; }
-.btn-export { background: #27ae60; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-.btn-export:hover { background: #2ecc71; }
-
-.input-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; background: #252525; padding: 8px; border-radius: 4px; border: 1px solid #333; }
-input[type="text"], input[type="date"], select { padding: 6px; border: 1px solid #444; border-radius: 3px; font-size: 12px; outline: none; background: #1e1e1e; color: #e0e0e0; }
-
-#taskInput { flex: 2; min-width: 180px; }
-#deptSelect, #requesterSelect, #customRequesterInput, #customDeptInput { flex: 1; min-width: 100px; }
-button { padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 600; }
-
-/* Quadro Kanban */
-.kanban-board { display: flex; flex-direction: column; gap: 10px; }
-.status-section { background: #151515; border: 1px solid #333; border-radius: 6px; overflow: hidden; min-height: 45px; }
-.status-header { padding: 10px 12px; cursor: pointer; display: flex; list-style: none; }
-.status-header h2 { font-size: 14px; display: flex; align-items: center; gap: 6px; width: 100%; color: #fff; }
-.status-header::after { content: '▼'; margin-left: auto; font-size: 12px; transition: transform 0.3s; color: #888; }
-details[open] > .status-header::after { transform: rotate(180deg); }
-
-.header-a-fazer { background: #1f2735; border-bottom: 1px solid #4a5568; }
-.header-em-andamento { background: #522f0b; border-bottom: 1px solid #b7791f; }
-.header-concluido { background: #173829; border-bottom: 1px solid #38a169; }
-
-/* --- CARTÕES SUPER COMPACTOS (Tudo na mesma linha) --- */
-.task-list { list-style: none; padding: 8px; min-height: 20px; }
-.task-item { background: #222; border: 1px solid #3a3a3a; padding: 6px; border-radius: 6px; cursor: grab; margin-bottom: 8px; }
-.task-item.dragging { opacity: 0.4; border: 1px dashed #3498db; }
-.task-item.is-delayed { border-left: 3px solid #e53e3e; background: #2a1b1b; }
-
-.task-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; background: #2d2d2d; padding: 6px 8px; border-radius: 4px; border: 1px solid #333; }
-.subtask-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; background: #333333; padding: 6px 8px; border-radius: 3px; }
-
-/* Flex-wrap permite que os quadradinhos fiquem na mesma linha, ou pulem se faltar espaço */
-.task-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 1; }
-.task-text { font-size: 13px; font-weight: bold; color: #fff; margin-right: 4px; word-break: break-word;}
-.completed .task-text { text-decoration: line-through; color: #666; }
-
-/* Status e Tags */
-.status-select { padding: 1px 4px; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; background: #1e1e1e; color: #e0e0e0; border: 1px solid #555; }
-.date-edit { background: transparent; border: none; border-bottom: 1px dashed #555; color: #bbb; font-size: 10px; outline: none; cursor: pointer; font-family: monospace;}
-
-.meta-tag { background: #2a2a2a; padding: 2px 4px; border-radius: 2px; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #333; font-size: 10px; color: #999; }
-.meta-tag.atrasado-tag { background: #4a1c1c; color: #f87171; border-color: #e53e3e; font-weight: bold;}
-
-.urg-baixa { color: #4ade80; } .urg-media { color: #facc15; } .urg-alta { color: #f87171; }
-.btn-delete { background: #e53e3e; margin-left: 4px; padding: 2px 6px; font-size: 10px; border-radius: 3px; color: white; border: none; cursor: pointer; height: 22px; }
-.btn-small { padding: 2px 6px; font-size: 11px; background: #38a169; border-radius: 3px; color: white; border: none; cursor: pointer; }
-
-/* Detalhes, Subtarefas e Comentários */
-.details-wrap { margin-top: 4px; border-top: 1px dotted #444; padding-top: 6px; }
-.details-summary { font-size: 10px; color: #888; cursor: pointer; list-style: none; padding: 0 4px;}
-.details-summary:hover { color: #ccc; }
-
-.subtask-list { list-style: none; padding-left: 10px; margin-top: 6px; border-left: 2px solid #444; }
-.subtask-item { background: #252525; border: 1px solid #333; padding: 6px; margin-bottom: 6px; border-radius: 4px; }
-
-.comments-section { margin-top: 6px; padding: 6px; background: #1e1e1e; border-radius: 3px; border-left: 2px solid #3498db; }
-.comments-subtask { border-left-color: #9b59b6; background: #222; margin-top: 6px;} 
-.comment-item { display: flex; justify-content: space-between; font-size: 10px; background: #2a2a2a; padding: 4px 6px; margin-bottom: 3px; border-radius: 2px; }
-.btn-del-comment { background: transparent; color: #e74c3c; padding: 0; cursor: pointer; border: none; font-size: 11px; font-weight: bold; }
-.comment-input-group { display: flex; gap: 4px; margin-top: 4px; }
-.comment-input-group input { flex: 1; background: #151515; border: 1px solid #333; color: #eee; padding: 4px; font-size: 10px; border-radius: 3px; outline: none;}
-/* ... (todo o código anterior permanece, adicione esta regra ou substitua tudo) ... */
-
-.meta-tag.done-tag { 
-    background: #1c3829; 
-    color: #4ade80; 
-    border-color: #22543d; 
-    font-weight: bold;
+/* TELA DE LOGIN */
+#login-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
-
-/* Garante que o input de data dentro da tag de conclusão também fique verde */
-.meta-tag.done-tag .date-edit {
-    color: #4ade80;
-    border-bottom-color: #38a169;
+.login-box {
+    background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333;
+    width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
+.login-box h2 { margin-bottom: 20px; font-size: 18px; }
+.login-box input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #444; border-radius: 4px; background: #151515; color: #fff; outline: none; }
+.login-buttons { display: flex; gap: 10px; margin-top: 10px; }
+.login-buttons button { flex: 1; }
+.btn-secondary { background: #4a5568 !important; }
+.btn-logout { background: #e53e3e; padding: 4px 8px; font-size: 11px; margin-left: 10px; border-radius: 4px; cursor: pointer; color: white; border: none; }
+.header-user { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px; font-size: 12px; color: #aaa; }
+#login-msg { font-size: 12px; margin-top: 15px; }

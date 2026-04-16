@@ -1,0 +1,120 @@
+[
+  {
+    "text": "Aplicativo Controle de Vagas",
+    "requester": "Aline",
+    "dept": "RH",
+    "deadline": "2026-04-24",
+    "urgency": "alta",
+    "status": "em-andamento",
+    "completedAt": null,
+    "subtasks": [
+      {
+        "text": "Adicionar SLA",
+        "status": "a-fazer",
+        "deadline": "2026-04-24",
+        "urgency": "media",
+        "comments": []
+      }
+    ],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Folha abril",
+    "requester": "Eu mesmo",
+    "dept": "RH",
+    "deadline": "2026-04-10",
+    "urgency": "alta",
+    "status": "concluido",
+    "completedAt": "2026-04-10T00:00:00.000Z",
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Checar diferença VT",
+    "requester": "Kaylane",
+    "dept": "RH",
+    "deadline": "2026-04-16",
+    "urgency": "media",
+    "status": "concluido",
+    "completedAt": "2026-04-16T13:40:42.585Z",
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Aplicativo Reembolsos",
+    "requester": "Andrey",
+    "dept": "Administrativo",
+    "deadline": "2026-05-15",
+    "urgency": "alta",
+    "status": "a-fazer",
+    "completedAt": null,
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Premiação logística abril",
+    "requester": "Andrey",
+    "dept": "Logística",
+    "deadline": "2026-04-10",
+    "urgency": "alta",
+    "status": "concluido",
+    "completedAt": "2026-04-10T00:00:00.000Z",
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Forms atualização cadastral",
+    "requester": "Andrey",
+    "dept": "RH",
+    "deadline": "2026-04-14",
+    "urgency": "alta",
+    "status": "concluido",
+    "completedAt": "2026-04-16T13:46:29.452Z",
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Base geral da empresa",
+    "requester": "Gabriel",
+    "dept": "RH",
+    "deadline": "",
+    "urgency": "alta",
+    "status": "em-andamento",
+    "completedAt": null,
+    "subtasks": [],
+    "comments": [
+      "Aguardando finalização da atualização cadastral para completar outros cadastros"
+    ],
+    "isExpanded": false
+  },
+  {
+    "text": "Planilha locação de carros",
+    "requester": "Debora",
+    "dept": "Administrativo",
+    "deadline": "",
+    "urgency": "baixa",
+    "status": "a-fazer",
+    "completedAt": null,
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  },
+  {
+    "text": "Comparar VT e combustível",
+    "requester": "Kaylane",
+    "dept": "RH",
+    "deadline": "2026-04-16",
+    "urgency": "media",
+    "status": "a-fazer",
+    "completedAt": null,
+    "subtasks": [],
+    "comments": [],
+    "isExpanded": false
+  }
+]
