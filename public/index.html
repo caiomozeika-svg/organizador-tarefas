@@ -1,107 +1,33 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Organizador</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>🔑 Acessar Organizador</h2>
-            <input type="email" id="emailInput" placeholder="Seu e-mail">
-            <input type="password" id="passInput" placeholder="Sua senha">
-            <div class="login-buttons">
-                <button onclick="handleLogin()">Entrar</button>
-                <button onclick="handleRegister()" class="btn-secondary">Cadastrar</button>
-            </div>
-            <p id="login-msg"></p>
+<div id="login-screen">
+    
+    <div class="login-box" id="box-login">
+        <h2>Meu Organizador</h2>
+        <input type="email" id="emailInput" placeholder="E-mail">
+        <input type="password" id="passInput" placeholder="Senha">
+        <div class="login-buttons">
+            <button onclick="handleLogin()">Entrar</button>
+            <button class="btn-secondary" onclick="handleRegister()">Cadastrar</button>
         </div>
+        <p id="login-msg"></p>
+        <button style="background:none; border:none; color:#63b3ed; font-size:12px; margin-top:15px; cursor:pointer;" onclick="showForgotBox()">Esqueci minha senha</button>
     </div>
 
-    <div class="container" id="main-content" style="display: none;">
-        <div class="header-user">
-            <span id="user-display"></span>
-            <button onclick="handleLogout()" class="btn-logout">Sair 🚪</button>
+    <div class="login-box" id="box-forgot" style="display: none;">
+        <h2>Recuperar Senha</h2>
+        <p style="font-size:12px; margin-bottom:15px; color:#aaa;">Digite seu e-mail para receber o link.</p>
+        <input type="email" id="forgotEmailInput" placeholder="Seu E-mail de cadastro">
+        <div class="login-buttons">
+            <button onclick="handleForgotPassword()">Enviar Link</button>
+            <button class="btn-secondary" onclick="showLoginBox()">Voltar</button>
         </div>
-        
-        <h1>Planejador</h1>
-        
-        <div class="toolbar">
-            <select id="filterMonth" onchange="renderTasks()">
-                <option value="">📅 Mês Conclusão (Todos)</option>
-                <option value="01">Janeiro</option><option value="02">Fevereiro</option>
-                <option value="03">Março</option><option value="04">Abril</option>
-                <option value="05">Maio</option><option value="06">Junho</option>
-                <option value="07">Julho</option><option value="08">Agosto</option>
-                <option value="09">Setembro</option><option value="10">Outubro</option>
-                <option value="11">Novembro</option><option value="12">Dezembro</option>
-            </select>
-            <select id="filterDept" onchange="renderTasks()">
-                <option value="">🏢 Todos os setores</option>
-            </select>
-            <select id="filterRequester" onchange="renderTasks()">
-                <option value="">🔍 Todos os solicitantes</option>
-            </select>
-            <select id="filterUrgency" onchange="renderTasks()">
-                <option value="">⚠️ Todas as urgências</option>
-                <option value="alta">🔴 Alta</option>
-                <option value="media">🟡 Média</option>
-                <option value="baixa">🟢 Baixa</option>
-            </select>
-            <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel</button>
-        </div>
-
-        <div class="input-group">
-            <input type="text" id="taskInput" placeholder="Nova tarefa...">
-            <select id="requesterSelect" onchange="toggleRequesterInput()">
-                <option value="">👤 Solicitante...</option>
-                <option value="Aline">Aline</option>
-                <option value="Andrey">Andrey</option>
-                <option value="Gabriel">Gabriel</option>
-                <option value="Outro">Outro...</option>
-            </select>
-            <input type="text" id="customRequesterInput" placeholder="Nome..." style="display: none;">
-            <select id="deptSelect" onchange="toggleDeptInput()">
-                <option value="">🏢 Setor...</option>
-                <option value="RH">RH</option>
-                <option value="Administrativo">Administrativo</option>
-                <option value="Logística">Logística</option>
-                <option value="Vendas">Vendas</option>
-                <option value="Outro">Outro...</option>
-            </select>
-            <input type="text" id="customDeptInput" placeholder="Setor?" style="display: none;">
-            <input type="date" id="deadlineInput">
-            <select id="urgencyInput" class="urgency-select">
-                <option value="baixa">🟢 Baixa</option>
-                <option value="media" selected>🟡 Média</option>
-                <option value="alta">🔴 Alta</option>
-            </select>
-            <button onclick="addTask()">Adicionar</button>
-        </div>
-
-        <div class="kanban-board">
-            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'a-fazer')">
-                <summary class="status-header header-a-fazer">
-                    <h2>⏳ A Fazer (<span id="count-a-fazer">0</span>)</h2>
-                </summary>
-                <ul id="taskList-a-fazer" class="task-list"></ul>
-            </details>
-            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'em-andamento')">
-                <summary class="status-header header-em-andamento">
-                    <h2>🚀 Em Andamento (<span id="count-em-andamento">0</span>)</h2>
-                </summary>
-                <ul id="taskList-em-andamento" class="task-list"></ul>
-            </details>
-            <details class="status-section" open ondragover="allowDrop(event)" ondrop="drop(event, 'concluido')">
-                <summary class="status-header header-concluido">
-                    <h2>✅ Concluído (<span id="count-concluido">0</span>)</h2>
-                </summary>
-                <ul id="taskList-concluido" class="task-list"></ul>
-            </details>
-        </div>
+        <p id="forgot-msg" style="font-size:12px; margin-top:15px;"></p>
     </div>
-    <script src="script.js"></script>
-</body>
-</html>
+
+    <div class="login-box" id="box-reset" style="display: none;">
+        <h2>Criar Nova Senha</h2>
+        <input type="password" id="newPassInput" placeholder="Digite a nova senha">
+        <button style="width:100%; margin-top:10px;" onclick="handleResetPassword()">Salvar Nova Senha</button>
+        <p id="reset-msg" style="font-size:12px; margin-top:15px;"></p>
+    </div>
+
+</div>
