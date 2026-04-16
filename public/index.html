@@ -48,54 +48,61 @@
             <h1>Planejamento do Dia</h1>
             
             <div class="toolbar">
-                <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel Completo</button>
+                <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel</button>
                 <select id="filterMonth" onchange="renderTasks()">
-                    <option value="">🗓️ Mês Conclusão (Todos)</option>
+                    <option value="">🗓️ Mês (Todos)</option>
                     <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
                 </select>
-                <select id="filterDept" onchange="renderTasks()"><option value="">🏢 Todos os setores</option></select>
-                <select id="filterRequester" onchange="renderTasks()"><option value="">🔍 Todos os solicitantes</option></select>
-                <select id="filterUrgency" onchange="renderTasks()">
-                    <option value="">⚠️ Todas as urgências</option>
-                    <option value="alta">🔴 Alta</option><option value="media">🟡 Média</option><option value="baixa">🟢 Baixa</option>
-                </select>
+                <select id="filterDept" onchange="renderTasks()"><option value="">🏢 Setores</option></select>
+                <select id="filterRequester" onchange="renderTasks()"><option value="">🔍 Solicitantes</option></select>
             </div>
 
             <div class="input-group">
-                <input type="text" id="taskInput" placeholder="Nova tarefa..." onkeypress="if(event.key==='Enter') addTask()">
-                <select id="requesterSelect" onchange="toggleRequesterInput()">
-                    <option value="">👤 Solicitante...</option>
-                    <option value="Eu mesmo">Andrey</option><option value="Aline">Aline</option><option value="Diretoria">Gabriel</option><option value="Outro">Outro...</option>
-                </select>
-                <input type="text" id="customRequesterInput" placeholder="Digite o nome..." style="display:none;">
-                
-                <select id="deptSelect" onchange="toggleDeptInput()">
-                    <option value="">🏢 Setor...</option>
-                    <option value="Administrativo">Administrativo</option><option value="Financeiro">Financeiro</option><option value="Operacional">Logística</option><option value="Vendas">Vendas</option><option value="RH">RH</option><option value="Outro">Outro...</option>
-                </select>
-                <input type="text" id="customDeptInput" placeholder="Digite o setor..." style="display:none;">
-                
-                <input type="date" id="deadlineInput">
-                <select id="urgencyInput">
-                    <option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option>
-                </select>
-                <button onclick="addTask()">Adicionar</button>
+                <input type="text" id="taskInput" placeholder="+ Adicionar nova tarefa rápida..." onkeypress="if(event.key==='Enter') addTask()" style="flex: 1;">
+                <select id="requesterSelect"><option value="">👤 Para quem?</option><option value="Eu mesmo">Eu mesmo</option><option value="Aline">Aline</option><option value="Debora">Debora</option></select>
+                <select id="deptSelect"><option value="">🏢 Setor...</option><option value="Administrativo">Administrativo</option><option value="Comercial">Comercial</option></select>
+                <button onclick="addTask()">Salvar</button>
             </div>
 
             <div class="kanban-board">
-                <div class="status-section header-a-fazer" ondrop="drop(event, 'a-fazer')" ondragover="allowDrop(event)">
-                    <div class="status-header"><h2>⏳ A Fazer (<span id="count-a-fazer">0</span>)</h2></div>
+                
+                <div class="list-header">
+                    <div>Tarefa (Clique para abrir)</div>
+                    <div>Resp. / Setor</div>
+                    <div>Prazo</div>
+                    <div>Urgência</div>
+                    <div>Status</div>
+                    <div style="text-align: center;">Resumo</div>
+                    <div></div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-header header-a-fazer"><h2>⏳ A Fazer (<span id="count-a-fazer">0</span>)</h2></div>
                     <ul class="task-list" id="taskList-a-fazer"></ul>
                 </div>
-                <div class="status-section header-em-andamento" ondrop="drop(event, 'em-andamento')" ondragover="allowDrop(event)">
-                    <div class="status-header"><h2>🚀 Em Andamento (<span id="count-em-andamento">0</span>)</h2></div>
+                
+                <div class="status-section">
+                    <div class="status-header header-em-andamento"><h2>🚀 Em Andamento (<span id="count-em-andamento">0</span>)</h2></div>
                     <ul class="task-list" id="taskList-em-andamento"></ul>
                 </div>
-                <div class="status-section header-concluido" ondrop="drop(event, 'concluido')" ondragover="allowDrop(event)">
-                    <div class="status-header"><h2>✅ Concluído (<span id="count-concluido">0</span>)</h2></div>
+                
+                <div class="status-section">
+                    <div class="status-header header-concluido"><h2>✅ Concluído (<span id="count-concluido">0</span>)</h2></div>
                     <ul class="task-list" id="taskList-concluido"></ul>
                 </div>
+
             </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTaskTitle">Detalhes da Tarefa</h2>
+                <button class="btn-close-modal" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalTaskBody">
+                </div>
         </div>
     </div>
 
