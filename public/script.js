@@ -1,9 +1,8 @@
 let tasks = [];
-let filteredTasks = [];
-let draggedTaskIndex = null;
 let userToken = localStorage.getItem('token');
+let draggedTaskIndex = null;
 
-// --- CONTROLE DE ACESSO E RECUPERAÇÃO DE SENHA ---
+// --- AUTENTICAÇÃO E RECUPERAÇÃO ---
 function checkAuth() {
     const urlParams = new URLSearchParams(window.location.search);
     const resetToken = urlParams.get('resetToken');
@@ -31,20 +30,17 @@ function showLoginBox() { document.getElementById('box-forgot').style.display = 
 
 async function handleLogin() {
     const email = document.getElementById('emailInput').value, password = document.getElementById('passInput').value;
-    const msg = document.getElementById('login-msg');
     const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
     const data = await res.json();
     if (res.ok) { localStorage.setItem('token', data.token); userToken = data.token; checkAuth(); } 
-    else { msg.innerText = data.message; msg.style.color = "#f87171"; }
+    else { document.getElementById('login-msg').innerText = data.message; }
 }
 
 async function handleRegister() {
     const email = document.getElementById('emailInput').value, password = document.getElementById('passInput').value;
-    const msg = document.getElementById('login-msg');
-    if(!email || !password) return alert("Preencha tudo!");
     const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
     const data = await res.json();
-    msg.innerText = data.message; msg.style.color = res.ok ? "#4ade80" : "#f87171";
+    document.getElementById('login-msg').innerText = data.message;
 }
 
 function handleLogout() { localStorage.removeItem('token'); userToken = null; checkAuth(); }
@@ -52,295 +48,146 @@ function handleLogout() { localStorage.removeItem('token'); userToken = null; ch
 async function handleForgotPassword() {
     const email = document.getElementById('forgotEmailInput').value;
     const msg = document.getElementById('forgot-msg');
-    msg.innerText = "Enviando e-mail... ⏳"; msg.style.color = "#aaa";
-
+    msg.innerText = "Enviando... ⏳";
     const res = await fetch('/api/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
     const data = await res.json();
     msg.innerText = data.message;
-    msg.style.color = res.ok ? "#4ade80" : "#f87171";
 }
 
 async function handleResetPassword() {
     const newPassword = document.getElementById('newPassInput').value;
-    const msg = document.getElementById('reset-msg');
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('resetToken');
-
-    if(!newPassword) return alert("Digite a nova senha!");
-
+    const token = new URLSearchParams(window.location.search).get('resetToken');
     const res = await fetch('/api/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, newPassword }) });
     const data = await res.json();
-    msg.innerText = data.message;
-    msg.style.color = res.ok ? "#4ade80" : "#f87171";
-
-    if(res.ok) setTimeout(() => { window.location.href = '/'; }, 2500); 
+    document.getElementById('reset-msg').innerText = data.message;
+    if(res.ok) setTimeout(() => window.location.href = '/', 2500);
 }
 
-// --- LOGICA DE TAREFAS ---
+// --- LOGICA DAS TAREFAS ---
 async function loadTasks() {
-    try {
-        const response = await fetch('/api/tasks', { headers: { 'Authorization': userToken } });
-        if (response.status === 401 || response.status === 403) return handleLogout();
-        tasks = await response.json();
-        renderTasks();
-    } catch (error) { console.error("Erro ao carregar:", error); }
+    const response = await fetch('/api/tasks', { headers: { 'Authorization': userToken } });
+    if (response.status === 401) return handleLogout();
+    tasks = await response.json();
+    renderTasks();
 }
 
 async function saveTasks() {
-    try {
-        await fetch('/api/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
-            body: JSON.stringify(tasks)
-        });
-    } catch (error) { console.error("Erro ao salvar:", error); }
-}
-
-function getUrgencyIcon(urgency) {
-    if(urgency === 'alta') return '<span class="urg-alta">🔴 Alta</span>';
-    if(urgency === 'media') return '<span class="urg-media">🟡 Média</span>';
-    return '<span class="urg-baixa">🟢 Baixa</span>';
-}
-
-function toggleRequesterInput() {
-    const sel = document.getElementById('requesterSelect'), cust = document.getElementById('customRequesterInput');
-    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
-}
-
-function toggleDeptInput() {
-    const sel = document.getElementById('deptSelect'), cust = document.getElementById('customDeptInput');
-    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
-}
-
-function toggleDetailsCustom(index) {
-    const details = document.getElementById(`details-${index}`);
-    const btn = document.getElementById(`btn-toggle-${index}`);
-    const isOpen = !details.open;
-    details.open = isOpen;
-    tasks[index].isExpanded = isOpen;
-    btn.innerText = isOpen ? '▼' : '▶';
-    saveTasks();
+    await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
+        body: JSON.stringify(tasks)
+    });
 }
 
 function renderTasks() {
-    const sections = {
-        'a-fazer': document.getElementById('taskList-a-fazer'),
-        'em-andamento': document.getElementById('taskList-em-andamento'),
-        'concluido': document.getElementById('taskList-concluido')
-    };
-
+    const sections = { 'a-fazer': document.getElementById('taskList-a-fazer'), 'em-andamento': document.getElementById('taskList-em-andamento'), 'concluido': document.getElementById('taskList-concluido') };
     Object.values(sections).forEach(s => s.innerHTML = '');
     const counts = { 'a-fazer': 0, 'em-andamento': 0, 'concluido': 0 };
     const today = new Date().toISOString().split('T')[0];
-    
-    const filterReq = document.getElementById('filterRequester').value;
-    const filterDept = document.getElementById('filterDept').value;
-    const filterMonth = document.getElementById('filterMonth').value;
-    const filterUrg = document.getElementById('filterUrgency').value;
 
-    const filterSelectReq = document.getElementById('filterRequester');
-    const filterSelectDept = document.getElementById('filterDept');
-    
-    const uniqueReqs = [...new Set(tasks.map(t => t.requester || 'Eu mesmo'))].sort();
-    const uniqueDepts = [...new Set(tasks.map(t => t.dept || 'Geral'))].sort();
-    
-    const currReq = filterSelectReq.value;
-    filterSelectReq.innerHTML = '<option value="">🔍 Todos os solicitantes</option>';
-    uniqueReqs.forEach(req => filterSelectReq.innerHTML += `<option value="${req}" ${req === currReq ? 'selected' : ''}>${req}</option>`);
+    const fReq = document.getElementById('filterRequester').value;
+    const fDept = document.getElementById('filterDept').value;
+    const fUrg = document.getElementById('filterUrgency').value;
+    const fMonth = document.getElementById('filterMonth').value;
 
-    const currDept = filterSelectDept.value;
-    filterSelectDept.innerHTML = '<option value="">🏢 Todos os setores</option>';
-    uniqueDepts.forEach(dept => filterSelectDept.innerHTML += `<option value="${dept}" ${dept === currDept ? 'selected' : ''}>${dept}</option>`);
+    // Atualiza filtros dinâmicos
+    const selReq = document.getElementById('filterRequester'), selDept = document.getElementById('filterDept');
+    const uReqs = [...new Set(tasks.map(t => t.requester || 'Eu mesmo'))], uDepts = [...new Set(tasks.map(t => t.dept || 'Geral'))];
+    const cR = selReq.value, cD = selDept.value;
+    selReq.innerHTML = '<option value="">🔍 Solicitantes</option>'; uReqs.forEach(r => selReq.innerHTML += `<option value="${r}" ${r===cR?'selected':''}>${r}</option>`);
+    selDept.innerHTML = '<option value="">🏢 Setores</option>'; uDepts.forEach(d => selDept.innerHTML += `<option value="${d}" ${d===cD?'selected':''}>${d}</option>`);
 
-    filteredTasks = []; 
+    tasks.forEach((t, i) => {
+        const req = t.requester || 'Eu mesmo', dept = t.dept || 'Geral', urg = t.urgency || 'media';
+        const cMonth = t.completedAt ? t.completedAt.split('-')[1] : '';
 
-    tasks.forEach((task, taskIndex) => {
-        if (!task.comments) task.comments = [];
-        if (!task.subtasks) task.subtasks = [];
-        if (task.status === 'concluido' && !task.completedAt) task.completedAt = new Date().toISOString();
+        if (fReq && req !== fReq) return;
+        if (fDept && dept !== fDept) return;
+        if (fUrg && urg !== fUrg) return;
+        if (fMonth && cMonth !== fMonth) return;
 
-        const req = task.requester || 'Eu mesmo';
-        const dept = task.dept || 'Geral';
-        const urg = task.urgency || 'media';
-        const completionMonth = task.completedAt ? task.completedAt.split('-')[1] : '';
-
-        if (filterReq && req !== filterReq) return;
-        if (filterDept && dept !== filterDept) return;
-        if (filterUrg && urg !== filterUrg) return;
-        if (filterMonth && completionMonth !== filterMonth) return; 
-
-        filteredTasks.push(task); 
-
-        const isDelayed = task.deadline && task.deadline < today && task.status !== 'concluido';
-        const displayStatus = task.status || 'a-fazer';
-        counts[displayStatus]++;
+        counts[t.status]++;
+        const isDelayed = t.deadline && t.deadline < today && t.status !== 'concluido';
 
         const li = document.createElement('li');
-        li.className = `task-item ${isDelayed ? 'is-delayed' : ''}`;
+        li.className = 'task-item';
         li.draggable = true;
-        li.ondragstart = () => { draggedTaskIndex = taskIndex; setTimeout(() => li.classList.add('dragging'), 0); };
-        li.ondragend = () => { li.classList.remove('dragging'); draggedTaskIndex = null; };
+        li.ondragstart = () => { draggedTaskIndex = i; };
 
-        const compDateValue = task.completedAt ? task.completedAt.split('T')[0] : '';
-
-        const titleRow = document.createElement('div');
-        titleRow.className = 'task-title-row';
-        titleRow.innerHTML = `
-            <div class="task-title ${task.status === 'concluido' ? 'completed' : ''}">
-                <button id="btn-toggle-${taskIndex}" class="btn-toggle-details" onclick="toggleDetailsCustom(${taskIndex})">
-                    ${task.isExpanded ? '▼' : '▶'}
-                </button>
-                <span class="task-text">${task.text}</span>
-                <select class="status-select status-${task.status}" onchange="updateStatus(${taskIndex}, this.value)">
-                    <option value="a-fazer" ${task.status === 'a-fazer' ? 'selected' : ''}>⏳ Fazer</option>
-                    <option value="em-andamento" ${task.status === 'em-andamento' ? 'selected' : ''}>🚀 Andamento</option>
-                    <option value="concluido" ${task.status === 'concluido' ? 'selected' : ''}>✅ Concluído</option>
-                </select>
-                <span class="meta-tag">👤 ${req}</span>
-                <span class="meta-tag">🏢 ${dept}</span>
-                <span class="meta-tag">${getUrgencyIcon(urg)}</span>
-                <span class="meta-tag ${isDelayed ? 'atrasado-tag' : ''}">
-                    ${isDelayed ? '⚠️' : '📅'} <input type="date" class="date-edit" value="${task.deadline || ''}" onchange="updateDeadline(${taskIndex}, this.value)">
-                </span>
-                ${task.status === 'concluido' ? `
-                    <span class="meta-tag done-tag">
-                        🏁 Concluiu: <input type="date" class="date-edit" value="${compDateValue}" onchange="updateCompletionDate(${taskIndex}, this.value)">
-                    </span>
-                ` : ''}
-            </div>
-            
-            <div class="task-counters">
-                <span class="counter-tag" title="Subtarefas">📋 ${task.subtasks.length}</span>
-                <span class="counter-tag" title="Comentários">💬 ${task.comments.length}</span>
-                <button class="btn-delete" onclick="deleteTask(${taskIndex})">🗑️</button>
-            </div>
-        `;
-
-        li.appendChild(titleRow);
-
-        const detailsWrap = document.createElement('details');
-        detailsWrap.id = `details-${taskIndex}`;
-        detailsWrap.className = 'details-wrap custom-details';
-        if (task.isExpanded) detailsWrap.open = true;
-
-        const summary = document.createElement('summary');
-        summary.style.display = 'none';
-        detailsWrap.appendChild(summary);
-
-        const commentBox = document.createElement('div');
-        commentBox.className = 'comments-section';
-        commentBox.innerHTML = `
-            ${task.comments.map((c, i) => `<div class="comment-item"><span>💬 ${c}</span><button class="btn-del-comment" onclick="deleteTaskComment(${taskIndex}, ${i})">✕</button></div>`).join('')}
-            <div class="comment-input-group">
-                <input type="text" id="taskComm-${taskIndex}" placeholder="Add coment..." onkeypress="if(event.key==='Enter') addTaskComment(${taskIndex})">
-                <button class="btn-small" onclick="addTaskComment(${taskIndex})">Ok</button>
-            </div>
-        `;
-        detailsWrap.appendChild(commentBox);
-
-        const subList = document.createElement('ul');
-        subList.className = 'subtask-list';
-        task.subtasks.forEach((st, si) => {
-            if (!st.comments) st.comments = [];
-            const subLi = document.createElement('li');
-            subLi.className = 'subtask-item';
-            
-            subLi.innerHTML = `
-                <div class="subtask-header">
-                    <div class="task-title ${st.status === 'concluido' ? 'completed' : ''}">
-                        <span class="task-text" style="font-size:11px;">${st.text}</span>
-                        <select class="status-select status-${st.status}" onchange="updateSubStatus(${taskIndex}, ${si}, this.value)">
-                            <option value="a-fazer" ${st.status === 'a-fazer' ? 'selected' : ''}>⏳</option>
-                            <option value="em-andamento" ${st.status === 'em-andamento' ? 'selected' : ''}>🚀</option>
-                            <option value="concluido" ${st.status === 'concluido' ? 'selected' : ''}>✅</option>
-                        </select>
-                        <span class="meta-tag">${getUrgencyIcon(st.urgency || 'media')}</span>
-                        <span class="meta-tag">📅 <input type="date" class="date-edit" value="${st.deadline || ''}" onchange="updateSubDeadline(${taskIndex}, ${si}, this.value)"></span>
-                    </div>
-                    <button class="btn-small btn-delete" onclick="deleteSub(${taskIndex}, ${si})">🗑️</button>
+        li.innerHTML = `
+            <div class="task-title-row">
+                <div class="task-title ${t.status === 'concluido' ? 'completed' : ''}">
+                    <button class="btn-toggle-details" onclick="toggleDetails(${i})">${t.isExpanded ? '▼' : '▶'}</button>
+                    <span class="task-text">${t.text}</span>
+                    <select class="status-select" onchange="updateStatus(${i}, this.value)">
+                        <option value="a-fazer" ${t.status==='a-fazer'?'selected':''}>⏳</option>
+                        <option value="em-andamento" ${t.status==='em-andamento'?'selected':''}>🚀</option>
+                        <option value="concluido" ${t.status==='concluido'?'selected':''}>✅</option>
+                    </select>
+                    <span class="meta-tag">👤 ${req}</span>
+                    <span class="meta-tag">🏢 ${dept}</span>
+                    <span class="meta-tag ${isDelayed?'atrasado-tag':''}">📅 <input type="date" class="date-edit" value="${t.deadline||''}" onchange="updateDeadline(${i}, this.value)"></span>
+                    ${t.status==='concluido'?`<span class="meta-tag done-tag">🏁 <input type="date" class="date-edit" value="${t.completedAt?t.completedAt.split('T')[0]:''}" onchange="updateCompDate(${i}, this.value)"></span>`:''}
                 </div>
-
-                <div class="comments-section comments-subtask">
-                    ${st.comments.map((c, ci) => `<div class="comment-item"><span>💬 ${c}</span><button class="btn-del-comment" onclick="deleteSubComment(${taskIndex}, ${si}, ${ci})">✕</button></div>`).join('')}
-                    <div class="comment-input-group">
-                        <input type="text" id="stComm-${taskIndex}-${si}" placeholder="Sub coment..." onkeypress="if(event.key==='Enter') addSubComment(${taskIndex}, ${si})">
-                        <button class="btn-small" onclick="addSubComment(${taskIndex}, ${si})">Ok</button>
-                    </div>
+                <div class="task-counters">
+                    <span class="counter-tag">📋 ${t.subtasks?.length || 0}</span>
+                    <span class="counter-tag">💬 ${t.comments?.length || 0}</span>
+                    <button class="btn-delete" onclick="deleteTask(${i})">🗑️</button>
                 </div>
-            `;
-            subList.appendChild(subLi);
-        });
-        detailsWrap.appendChild(subList);
-
-        const newSub = document.createElement('div');
-        newSub.className = 'comment-input-group';
-        newSub.style.marginTop = '10px';
-        newSub.innerHTML = `
-            <input type="text" id="ns-${taskIndex}" placeholder="Nova sub..." onkeypress="if(event.key==='Enter') addSub(${taskIndex})">
-            <select id="urg-${taskIndex}" class="status-select">
-                <option value="baixa">🟢</option><option value="media" selected>🟡</option><option value="alta">🔴</option>
-            </select>
-            <button class="btn-small" onclick="addSub(${taskIndex})">+</button>
+            </div>
+            <div id="det-${i}" class="details-wrap" style="display: ${t.isExpanded?'block':'none'}">
+                <div class="comments-section">
+                    ${(t.comments||[]).map((c,ci)=>`<div class="comment-item">💬 ${c} <button class="btn-del-comment" onclick="delComm(${i},${ci})">✕</button></div>`).join('')}
+                    <input type="text" placeholder="Comentar..." onkeypress="if(event.key==='Enter') addComm(${i}, this.value)">
+                </div>
+                <ul class="subtask-list">
+                    ${(t.subtasks||[]).map((s,si)=>`<li class="subtask-item">${s.text} [${s.status}] <button class="btn-delete" onclick="delSub(${i},${si})">🗑️</button></li>`).join('')}
+                </ul>
+                <input type="text" placeholder="Nova sub..." onkeypress="if(event.key==='Enter') addSub(${i}, this.value)">
+            </div>
         `;
-        detailsWrap.appendChild(newSub);
-
-        li.appendChild(detailsWrap);
-        sections[displayStatus].appendChild(li);
+        sections[t.status].appendChild(li);
     });
-
     Object.keys(counts).forEach(k => document.getElementById(`count-${k}`).innerText = counts[k]);
 }
 
-function updateStatus(i, s) { tasks[i].status = s; tasks[i].completedAt = (s === 'concluido') ? new Date().toISOString() : null; renderTasks(); saveTasks(); }
-function updateCompletionDate(i, d) { tasks[i].completedAt = new Date(d).toISOString(); renderTasks(); saveTasks(); }
+// --- FUNÇÕES AUXILIARES ---
+function toggleDetails(i) { tasks[i].isExpanded = !tasks[i].isExpanded; renderTasks(); saveTasks(); }
+function updateStatus(i, s) { tasks[i].status = s; tasks[i].completedAt = s==='concluido'?new Date().toISOString():null; renderTasks(); saveTasks(); }
 function updateDeadline(i, d) { tasks[i].deadline = d; renderTasks(); saveTasks(); }
+function updateCompDate(i, d) { tasks[i].completedAt = new Date(d).toISOString(); renderTasks(); saveTasks(); }
 function deleteTask(i) { tasks.splice(i, 1); renderTasks(); saveTasks(); }
+function addComm(i, v) { if(!v) return; tasks[i].comments.push(v); renderTasks(); saveTasks(); }
+function delComm(i, ci) { tasks[i].comments.splice(ci,1); renderTasks(); saveTasks(); }
+function addSub(i, v) { if(!v) return; tasks[i].subtasks.push({text:v, status:'a-fazer'}); renderTasks(); saveTasks(); }
+function delSub(i, si) { tasks[i].subtasks.splice(si,1); renderTasks(); saveTasks(); }
 
 function addTask() {
-    const t = document.getElementById('taskInput'), sReq = document.getElementById('requesterSelect');
-    const cReq = document.getElementById('customRequesterInput'), sDept = document.getElementById('deptSelect');
-    const cDept = document.getElementById('customDeptInput'), d = document.getElementById('deadlineInput');
-    const u = document.getElementById('urgencyInput');
+    const t = document.getElementById('taskInput'), rS = document.getElementById('requesterSelect'), rC = document.getElementById('customRequesterInput');
+    const dS = document.getElementById('deptSelect'), dC = document.getElementById('customDeptInput'), dl = document.getElementById('deadlineInput'), ur = document.getElementById('urgencyInput');
     if(!t.value) return;
-    let req = sReq.value === 'Outro' ? cReq.value.trim() : sReq.value;
-    let dept = sDept.value === 'Outro' ? cDept.value.trim() : sDept.value;
-    tasks.push({ text: t.value, requester: req || 'Eu mesmo', dept: dept || 'Geral', deadline: d.value, urgency: u.value, status: 'a-fazer', completedAt: null, subtasks: [], comments: [], isExpanded: false });
-    t.value = ''; sReq.value = ''; cReq.value = ''; cReq.style.display = 'none'; sDept.value = ''; cDept.value = ''; cDept.style.display = 'none'; d.value = '';
-    renderTasks(); saveTasks();
+    const req = rS.value === 'Outro' ? rC.value : rS.value;
+    const dep = dS.value === 'Outro' ? dC.value : dS.value;
+    tasks.push({ text: t.value, requester: req||'Eu mesmo', dept: dep||'Geral', deadline: dl.value, urgency: ur.value, status: 'a-fazer', subtasks: [], comments: [], isExpanded: false });
+    t.value = ''; renderTasks(); saveTasks();
 }
 
-function addSub(i) {
-    const val = document.getElementById(`ns-${i}`).value;
-    const urg = document.getElementById(`urg-${i}`).value;
-    if(!val) return;
-    tasks[i].subtasks.push({ text: val, status: 'a-fazer', deadline: '', urgency: urg, comments: [] });
-    renderTasks(); saveTasks();
+function exportToExcel() {
+    let csv = "\uFEFFTítulo;Status;Solicitante;Setor;Prazo;Conclusão;Subtarefas;Comentários\n";
+    tasks.forEach(t => {
+        const subs = (t.subtasks||[]).map(s => s.text).join(" | ");
+        const comms = (t.comments||[]).join(" | ");
+        csv += `"${t.text}";"${t.status}";"${t.requester}";"${t.dept}";"${t.deadline||''}";"${t.completedAt?t.completedAt.split('T')[0]:''}";"${subs}";"${comms}"\n`;
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    link.download = "Tarefas_Completo.csv";
+    link.click();
 }
-function updateSubStatus(ti, si, s) { tasks[ti].subtasks[si].status = s; renderTasks(); saveTasks(); }
-function updateSubDeadline(ti, si, d) { tasks[ti].subtasks[si].deadline = d; renderTasks(); saveTasks(); }
-function deleteSub(ti, si) { tasks[ti].subtasks.splice(si, 1); renderTasks(); saveTasks(); }
 
-function addTaskComment(i) {
-    const inp = document.getElementById(`taskComm-${i}`);
-    if(!inp.value) return;
-    tasks[i].comments.push(inp.value);
-    inp.value = ''; renderTasks(); saveTasks();
-}
-function deleteTaskComment(ti, ci) { tasks[ti].comments.splice(ci, 1); renderTasks(); saveTasks(); }
-function addSubComment(ti, si) {
-    const inp = document.getElementById(`stComm-${ti}-${si}`);
-    if(!inp.value) return;
-    tasks[ti].subtasks[si].comments.push(inp.value);
-    inp.value = ''; renderTasks(); saveTasks();
-}
-function deleteSubComment(ti, si, ci) { tasks[ti].subtasks[si].comments.splice(ci, 1); renderTasks(); saveTasks(); }
-
+function toggleRequesterInput() { document.getElementById('customRequesterInput').style.display = document.getElementById('requesterSelect').value==='Outro'?'inline-block':'none'; }
+function toggleDeptInput() { document.getElementById('customDeptInput').style.display = document.getElementById('deptSelect').value==='Outro'?'inline-block':'none'; }
 function allowDrop(ev) { ev.preventDefault(); }
-function drop(ev, newStatus) {
-    ev.preventDefault();
-    if (draggedTaskIndex !== null && tasks[draggedTaskIndex].status !== newStatus) {
-        updateStatus(draggedTaskIndex, newStatus);
-    }
-}
+function drop(ev, s) { ev.preventDefault(); if(draggedTaskIndex!==null) { updateStatus(draggedTaskIndex, s); draggedTaskIndex=null; } }
 
 checkAuth();
