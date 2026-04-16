@@ -1,129 +1,346 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient, ObjectId } = require('mongodb');
-const path = require('path');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer'); // Nosso carteiro!
+let tasks = [];
+let filteredTasks = [];
+let draggedTaskIndex = null;
+let userToken = localStorage.getItem('token');
 
-const app = express();
-const port = process.env.PORT || 3000;
-const SECRET_KEY = "chave_super_secreta_do_caio";
+// --- CONTROLE DE ACESSO E RECUPERAÇÃO DE SENHA ---
+function checkAuth() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('resetToken');
 
-// --- CONFIGURAÇÃO DO E-MAIL ---
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'caiomozeika@gmail.com', // ⚠️ COLOQUE SEU EMAIL DO GMAIL AQUI
-        pass: 'zlbs uywl oaid gnnf'     // ⚠️ COLOQUE AQUELA SENHA DE 16 LETRAS AQUI (SEM ESPAÇOS)
+    if (resetToken) {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('box-login').style.display = 'none';
+        document.getElementById('box-reset').style.display = 'block';
+        return; 
     }
-});
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-const uri = "mongodb+srv://caiomozeika_db_user:Cm873400@cluster0.kungptq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const client = new MongoClient(uri);
-
-let db, tasksCol, usersCol;
-
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log("🟢 Conectado à Nuvem (MongoDB)");
-        db = client.db('MeuOrganizador');
-        tasksCol = db.collection('tarefas');
-        usersCol = db.collection('usuarios');
-    } catch (e) { console.error("🔴 Erro DB:", e); }
+    if (userToken) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        loadTasks();
+    } else {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-content').style.display = 'none';
+    }
 }
-connectDB();
 
-// --- SISTEMA DE CADASTRO E LOGIN (MANTIDO) ---
-app.post('/api/register', async (req, res) => {
+function showForgotBox() { document.getElementById('box-login').style.display = 'none'; document.getElementById('box-forgot').style.display = 'block'; }
+function showLoginBox() { document.getElementById('box-forgot').style.display = 'none'; document.getElementById('box-login').style.display = 'block'; }
+
+async function handleLogin() {
+    const email = document.getElementById('emailInput').value, password = document.getElementById('passInput').value;
+    const msg = document.getElementById('login-msg');
+    const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const data = await res.json();
+    if (res.ok) { localStorage.setItem('token', data.token); userToken = data.token; checkAuth(); } 
+    else { msg.innerText = data.message; msg.style.color = "#f87171"; }
+}
+
+async function handleRegister() {
+    const email = document.getElementById('emailInput').value, password = document.getElementById('passInput').value;
+    const msg = document.getElementById('login-msg');
+    if(!email || !password) return alert("Preencha tudo!");
+    const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const data = await res.json();
+    msg.innerText = data.message; msg.style.color = res.ok ? "#4ade80" : "#f87171";
+}
+
+function handleLogout() { localStorage.removeItem('token'); userToken = null; checkAuth(); }
+
+async function handleForgotPassword() {
+    const email = document.getElementById('forgotEmailInput').value;
+    const msg = document.getElementById('forgot-msg');
+    msg.innerText = "Enviando e-mail... ⏳"; msg.style.color = "#aaa";
+
+    const res = await fetch('/api/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const data = await res.json();
+    msg.innerText = data.message;
+    msg.style.color = res.ok ? "#4ade80" : "#f87171";
+}
+
+async function handleResetPassword() {
+    const newPassword = document.getElementById('newPassInput').value;
+    const msg = document.getElementById('reset-msg');
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('resetToken');
+
+    if(!newPassword) return alert("Digite a nova senha!");
+
+    const res = await fetch('/api/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, newPassword }) });
+    const data = await res.json();
+    msg.innerText = data.message;
+    msg.style.color = res.ok ? "#4ade80" : "#f87171";
+
+    if(res.ok) setTimeout(() => { window.location.href = '/'; }, 2500); 
+}
+
+// --- LOGICA DE TAREFAS ---
+async function loadTasks() {
     try {
-        const { email, password } = req.body;
-        if (await usersCol.findOne({ email })) return res.status(400).json({ message: "E-mail já cadastrado!" });
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await usersCol.insertOne({ email, password: hashedPassword });
-        res.json({ message: "Usuário criado com sucesso!" });
-    } catch (e) { res.status(500).json({ message: "Erro ao criar." }); }
-});
+        const response = await fetch('/api/tasks', { headers: { 'Authorization': userToken } });
+        if (response.status === 401 || response.status === 403) return handleLogout();
+        tasks = await response.json();
+        renderTasks();
+    } catch (error) { console.error("Erro ao carregar:", error); }
+}
 
-app.post('/api/login', async (req, res) => {
+async function saveTasks() {
     try {
-        const { email, password } = req.body;
-        const user = await usersCol.findOne({ email });
-        if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "E-mail ou senha incorretos!" });
-        const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '7d' });
-        res.json({ token });
-    } catch (e) { res.status(500).json({ message: "Erro no login." }); }
-});
+        await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
+            body: JSON.stringify(tasks)
+        });
+    } catch (error) { console.error("Erro ao salvar:", error); }
+}
 
-// --- NOVO: ESQUECI A SENHA E RECUPERAÇÃO ---
+function getUrgencyIcon(urgency) {
+    if(urgency === 'alta') return '<span class="urg-alta">🔴 Alta</span>';
+    if(urgency === 'media') return '<span class="urg-media">🟡 Média</span>';
+    return '<span class="urg-baixa">🟢 Baixa</span>';
+}
 
-// 1. Rota que gera o link e manda o e-mail
-app.post('/api/forgot-password', async (req, res) => {
-    const { email } = req.body;
-    const user = await usersCol.findOne({ email });
-    if (!user) return res.status(404).json({ message: "E-mail não encontrado no sistema!" });
+function toggleRequesterInput() {
+    const sel = document.getElementById('requesterSelect'), cust = document.getElementById('customRequesterInput');
+    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
+}
 
-    // Cria um "ticket" válido por 15 minutos
-    const resetToken = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '15m' });
-    const resetLink = `https://organizador-tarefas.onrender.com/?resetToken=${resetToken}`;
+function toggleDeptInput() {
+    const sel = document.getElementById('deptSelect'), cust = document.getElementById('customDeptInput');
+    if (sel.value === 'Outro') { cust.style.display = 'inline-block'; cust.focus(); } else { cust.style.display = 'none'; cust.value = ''; }
+}
 
-    const mailOptions = {
-        from: 'Meu Organizador',
-        to: email,
-        subject: 'Recuperação de Senha - Meu Organizador',
-        html: `<h3>Você pediu para redefinir sua senha!</h3>
-               <p>Clique no link abaixo para criar uma senha nova. Esse link expira em 15 minutos.</p>
-               <a href="${resetLink}" style="padding:10px 15px; background:#3182ce; color:white; text-decoration:none; border-radius:5px; display:inline-block; margin-top:10px;">Criar Nova Senha</a>
-               <p style="margin-top:20px; font-size:11px; color:#888;">Se não foi você, apenas ignore este e-mail.</p>`
+function toggleDetailsCustom(index) {
+    const details = document.getElementById(`details-${index}`);
+    const btn = document.getElementById(`btn-toggle-${index}`);
+    const isOpen = !details.open;
+    details.open = isOpen;
+    tasks[index].isExpanded = isOpen;
+    btn.innerText = isOpen ? '▼' : '▶';
+    saveTasks();
+}
+
+function renderTasks() {
+    const sections = {
+        'a-fazer': document.getElementById('taskList-a-fazer'),
+        'em-andamento': document.getElementById('taskList-em-andamento'),
+        'concluido': document.getElementById('taskList-concluido')
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        res.json({ message: "E-mail de recuperação enviado! Olhe sua caixa de entrada." });
-    } catch (error) {
-        console.error("Erro ao enviar e-mail:", error);
-        res.status(500).json({ message: "Erro ao enviar o e-mail." });
+    Object.values(sections).forEach(s => s.innerHTML = '');
+    const counts = { 'a-fazer': 0, 'em-andamento': 0, 'concluido': 0 };
+    const today = new Date().toISOString().split('T')[0];
+    
+    const filterReq = document.getElementById('filterRequester').value;
+    const filterDept = document.getElementById('filterDept').value;
+    const filterMonth = document.getElementById('filterMonth').value;
+    const filterUrg = document.getElementById('filterUrgency').value;
+
+    const filterSelectReq = document.getElementById('filterRequester');
+    const filterSelectDept = document.getElementById('filterDept');
+    
+    const uniqueReqs = [...new Set(tasks.map(t => t.requester || 'Eu mesmo'))].sort();
+    const uniqueDepts = [...new Set(tasks.map(t => t.dept || 'Geral'))].sort();
+    
+    const currReq = filterSelectReq.value;
+    filterSelectReq.innerHTML = '<option value="">🔍 Todos os solicitantes</option>';
+    uniqueReqs.forEach(req => filterSelectReq.innerHTML += `<option value="${req}" ${req === currReq ? 'selected' : ''}>${req}</option>`);
+
+    const currDept = filterSelectDept.value;
+    filterSelectDept.innerHTML = '<option value="">🏢 Todos os setores</option>';
+    uniqueDepts.forEach(dept => filterSelectDept.innerHTML += `<option value="${dept}" ${dept === currDept ? 'selected' : ''}>${dept}</option>`);
+
+    filteredTasks = []; 
+
+    tasks.forEach((task, taskIndex) => {
+        if (!task.comments) task.comments = [];
+        if (!task.subtasks) task.subtasks = [];
+        if (task.status === 'concluido' && !task.completedAt) task.completedAt = new Date().toISOString();
+
+        const req = task.requester || 'Eu mesmo';
+        const dept = task.dept || 'Geral';
+        const urg = task.urgency || 'media';
+        const completionMonth = task.completedAt ? task.completedAt.split('-')[1] : '';
+
+        if (filterReq && req !== filterReq) return;
+        if (filterDept && dept !== filterDept) return;
+        if (filterUrg && urg !== filterUrg) return;
+        if (filterMonth && completionMonth !== filterMonth) return; 
+
+        filteredTasks.push(task); 
+
+        const isDelayed = task.deadline && task.deadline < today && task.status !== 'concluido';
+        const displayStatus = task.status || 'a-fazer';
+        counts[displayStatus]++;
+
+        const li = document.createElement('li');
+        li.className = `task-item ${isDelayed ? 'is-delayed' : ''}`;
+        li.draggable = true;
+        li.ondragstart = () => { draggedTaskIndex = taskIndex; setTimeout(() => li.classList.add('dragging'), 0); };
+        li.ondragend = () => { li.classList.remove('dragging'); draggedTaskIndex = null; };
+
+        const compDateValue = task.completedAt ? task.completedAt.split('T')[0] : '';
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'task-title-row';
+        titleRow.innerHTML = `
+            <div class="task-title ${task.status === 'concluido' ? 'completed' : ''}">
+                <button id="btn-toggle-${taskIndex}" class="btn-toggle-details" onclick="toggleDetailsCustom(${taskIndex})">
+                    ${task.isExpanded ? '▼' : '▶'}
+                </button>
+                <span class="task-text">${task.text}</span>
+                <select class="status-select status-${task.status}" onchange="updateStatus(${taskIndex}, this.value)">
+                    <option value="a-fazer" ${task.status === 'a-fazer' ? 'selected' : ''}>⏳ Fazer</option>
+                    <option value="em-andamento" ${task.status === 'em-andamento' ? 'selected' : ''}>🚀 Andamento</option>
+                    <option value="concluido" ${task.status === 'concluido' ? 'selected' : ''}>✅ Concluído</option>
+                </select>
+                <span class="meta-tag">👤 ${req}</span>
+                <span class="meta-tag">🏢 ${dept}</span>
+                <span class="meta-tag">${getUrgencyIcon(urg)}</span>
+                <span class="meta-tag ${isDelayed ? 'atrasado-tag' : ''}">
+                    ${isDelayed ? '⚠️' : '📅'} <input type="date" class="date-edit" value="${task.deadline || ''}" onchange="updateDeadline(${taskIndex}, this.value)">
+                </span>
+                ${task.status === 'concluido' ? `
+                    <span class="meta-tag done-tag">
+                        🏁 Concluiu: <input type="date" class="date-edit" value="${compDateValue}" onchange="updateCompletionDate(${taskIndex}, this.value)">
+                    </span>
+                ` : ''}
+            </div>
+            
+            <div class="task-counters">
+                <span class="counter-tag" title="Subtarefas">📋 ${task.subtasks.length}</span>
+                <span class="counter-tag" title="Comentários">💬 ${task.comments.length}</span>
+                <button class="btn-delete" onclick="deleteTask(${taskIndex})">🗑️</button>
+            </div>
+        `;
+
+        li.appendChild(titleRow);
+
+        const detailsWrap = document.createElement('details');
+        detailsWrap.id = `details-${taskIndex}`;
+        detailsWrap.className = 'details-wrap custom-details';
+        if (task.isExpanded) detailsWrap.open = true;
+
+        const summary = document.createElement('summary');
+        summary.style.display = 'none';
+        detailsWrap.appendChild(summary);
+
+        const commentBox = document.createElement('div');
+        commentBox.className = 'comments-section';
+        commentBox.innerHTML = `
+            ${task.comments.map((c, i) => `<div class="comment-item"><span>💬 ${c}</span><button class="btn-del-comment" onclick="deleteTaskComment(${taskIndex}, ${i})">✕</button></div>`).join('')}
+            <div class="comment-input-group">
+                <input type="text" id="taskComm-${taskIndex}" placeholder="Add coment..." onkeypress="if(event.key==='Enter') addTaskComment(${taskIndex})">
+                <button class="btn-small" onclick="addTaskComment(${taskIndex})">Ok</button>
+            </div>
+        `;
+        detailsWrap.appendChild(commentBox);
+
+        const subList = document.createElement('ul');
+        subList.className = 'subtask-list';
+        task.subtasks.forEach((st, si) => {
+            if (!st.comments) st.comments = [];
+            const subLi = document.createElement('li');
+            subLi.className = 'subtask-item';
+            
+            subLi.innerHTML = `
+                <div class="subtask-header">
+                    <div class="task-title ${st.status === 'concluido' ? 'completed' : ''}">
+                        <span class="task-text" style="font-size:11px;">${st.text}</span>
+                        <select class="status-select status-${st.status}" onchange="updateSubStatus(${taskIndex}, ${si}, this.value)">
+                            <option value="a-fazer" ${st.status === 'a-fazer' ? 'selected' : ''}>⏳</option>
+                            <option value="em-andamento" ${st.status === 'em-andamento' ? 'selected' : ''}>🚀</option>
+                            <option value="concluido" ${st.status === 'concluido' ? 'selected' : ''}>✅</option>
+                        </select>
+                        <span class="meta-tag">${getUrgencyIcon(st.urgency || 'media')}</span>
+                        <span class="meta-tag">📅 <input type="date" class="date-edit" value="${st.deadline || ''}" onchange="updateSubDeadline(${taskIndex}, ${si}, this.value)"></span>
+                    </div>
+                    <button class="btn-small btn-delete" onclick="deleteSub(${taskIndex}, ${si})">🗑️</button>
+                </div>
+
+                <div class="comments-section comments-subtask">
+                    ${st.comments.map((c, ci) => `<div class="comment-item"><span>💬 ${c}</span><button class="btn-del-comment" onclick="deleteSubComment(${taskIndex}, ${si}, ${ci})">✕</button></div>`).join('')}
+                    <div class="comment-input-group">
+                        <input type="text" id="stComm-${taskIndex}-${si}" placeholder="Sub coment..." onkeypress="if(event.key==='Enter') addSubComment(${taskIndex}, ${si})">
+                        <button class="btn-small" onclick="addSubComment(${taskIndex}, ${si})">Ok</button>
+                    </div>
+                </div>
+            `;
+            subList.appendChild(subLi);
+        });
+        detailsWrap.appendChild(subList);
+
+        const newSub = document.createElement('div');
+        newSub.className = 'comment-input-group';
+        newSub.style.marginTop = '10px';
+        newSub.innerHTML = `
+            <input type="text" id="ns-${taskIndex}" placeholder="Nova sub..." onkeypress="if(event.key==='Enter') addSub(${taskIndex})">
+            <select id="urg-${taskIndex}" class="status-select">
+                <option value="baixa">🟢</option><option value="media" selected>🟡</option><option value="alta">🔴</option>
+            </select>
+            <button class="btn-small" onclick="addSub(${taskIndex})">+</button>
+        `;
+        detailsWrap.appendChild(newSub);
+
+        li.appendChild(detailsWrap);
+        sections[displayStatus].appendChild(li);
+    });
+
+    Object.keys(counts).forEach(k => document.getElementById(`count-${k}`).innerText = counts[k]);
+}
+
+function updateStatus(i, s) { tasks[i].status = s; tasks[i].completedAt = (s === 'concluido') ? new Date().toISOString() : null; renderTasks(); saveTasks(); }
+function updateCompletionDate(i, d) { tasks[i].completedAt = new Date(d).toISOString(); renderTasks(); saveTasks(); }
+function updateDeadline(i, d) { tasks[i].deadline = d; renderTasks(); saveTasks(); }
+function deleteTask(i) { tasks.splice(i, 1); renderTasks(); saveTasks(); }
+
+function addTask() {
+    const t = document.getElementById('taskInput'), sReq = document.getElementById('requesterSelect');
+    const cReq = document.getElementById('customRequesterInput'), sDept = document.getElementById('deptSelect');
+    const cDept = document.getElementById('customDeptInput'), d = document.getElementById('deadlineInput');
+    const u = document.getElementById('urgencyInput');
+    if(!t.value) return;
+    let req = sReq.value === 'Outro' ? cReq.value.trim() : sReq.value;
+    let dept = sDept.value === 'Outro' ? cDept.value.trim() : sDept.value;
+    tasks.push({ text: t.value, requester: req || 'Eu mesmo', dept: dept || 'Geral', deadline: d.value, urgency: u.value, status: 'a-fazer', completedAt: null, subtasks: [], comments: [], isExpanded: false });
+    t.value = ''; sReq.value = ''; cReq.value = ''; cReq.style.display = 'none'; sDept.value = ''; cDept.value = ''; cDept.style.display = 'none'; d.value = '';
+    renderTasks(); saveTasks();
+}
+
+function addSub(i) {
+    const val = document.getElementById(`ns-${i}`).value;
+    const urg = document.getElementById(`urg-${i}`).value;
+    if(!val) return;
+    tasks[i].subtasks.push({ text: val, status: 'a-fazer', deadline: '', urgency: urg, comments: [] });
+    renderTasks(); saveTasks();
+}
+function updateSubStatus(ti, si, s) { tasks[ti].subtasks[si].status = s; renderTasks(); saveTasks(); }
+function updateSubDeadline(ti, si, d) { tasks[ti].subtasks[si].deadline = d; renderTasks(); saveTasks(); }
+function deleteSub(ti, si) { tasks[ti].subtasks.splice(si, 1); renderTasks(); saveTasks(); }
+
+function addTaskComment(i) {
+    const inp = document.getElementById(`taskComm-${i}`);
+    if(!inp.value) return;
+    tasks[i].comments.push(inp.value);
+    inp.value = ''; renderTasks(); saveTasks();
+}
+function deleteTaskComment(ti, ci) { tasks[ti].comments.splice(ci, 1); renderTasks(); saveTasks(); }
+function addSubComment(ti, si) {
+    const inp = document.getElementById(`stComm-${ti}-${si}`);
+    if(!inp.value) return;
+    tasks[ti].subtasks[si].comments.push(inp.value);
+    inp.value = ''; renderTasks(); saveTasks();
+}
+function deleteSubComment(ti, si, ci) { tasks[ti].subtasks[si].comments.splice(ci, 1); renderTasks(); saveTasks(); }
+
+function allowDrop(ev) { ev.preventDefault(); }
+function drop(ev, newStatus) {
+    ev.preventDefault();
+    if (draggedTaskIndex !== null && tasks[draggedTaskIndex].status !== newStatus) {
+        updateStatus(draggedTaskIndex, newStatus);
     }
-});
+}
 
-// 2. Rota que salva a nova senha
-app.post('/api/reset-password', async (req, res) => {
-    const { token, newPassword } = req.body;
-    try {
-        const decoded = jwt.verify(token, SECRET_KEY); // Verifica se o link é válido
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        
-        await usersCol.updateOne(
-            { _id: new ObjectId(decoded.userId) },
-            { $set: { password: hashedPassword } }
-        );
-        res.json({ message: "Senha alterada com sucesso! Redirecionando..." });
-    } catch (error) { res.status(400).json({ message: "Link inválido ou expirado!" }); }
-});
-
-// --- ROTAS PROTEGIDAS (MANTIDO) ---
-const auth = (req, res, next) => {
-    const token = req.headers['authorization'];
-    if (!token) return res.status(403).json({ message: "Acesso negado!" });
-    try { req.userId = jwt.verify(token, SECRET_KEY).userId; next(); } 
-    catch { res.status(401).json({ message: "Sessão expirada!" }); }
-};
-
-app.get('/api/tasks', auth, async (req, res) => {
-    const tasks = await tasksCol.find({ ownerId: req.userId }, { projection: { _id: 0 } }).toArray();
-    res.json(tasks);
-});
-
-app.post('/api/tasks', auth, async (req, res) => {
-    const tasks = req.body.map(t => ({ ...t, ownerId: req.userId }));
-    await tasksCol.deleteMany({ ownerId: req.userId });
-    if (tasks.length > 0) await tasksCol.insertMany(tasks);
-    res.json({ message: "Sincronizado!" });
-});
-
-app.listen(port, () => console.log(`🚀 Rodando na porta ${port}`));
+checkAuth();
