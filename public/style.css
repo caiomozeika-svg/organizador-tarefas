@@ -1,91 +1,42 @@
-/* =========================================
-   1. RESET E ESTILO GERAL
-   ========================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
 body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+h1 { text-align: center; margin-bottom: 20px; }
 
-/* =========================================
-   2. CONTAINER PRINCIPAL
-   ========================================= */
-.container { max-width: 1200px; margin: 0 auto; background-color: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-h1 { text-align: center; margin-bottom: 20px; color: #fff; }
-
-/* =========================================
-   3. BARRA DE FERRAMENTAS E INPUTS
-   ========================================= */
 .toolbar, .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
-input, select, button { padding: 8px 12px; border: 1px solid #333; border-radius: 4px; background-color: #2d2d2d; color: #fff; outline: none; }
-input:focus, select:focus { border-color: #555; }
-button { background-color: #3182ce; color: white; cursor: pointer; border: none; font-weight: bold; transition: background 0.2s; }
-button:hover { background-color: #2b6cb0; }
-.btn-export { background-color: #38a169; }
-.btn-export:hover { background-color: #2f855a; }
-.btn-delete { background-color: transparent; border: none; font-size: 16px; cursor: pointer; padding: 0; margin-left: 10px; }
+input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #333; background: #2d2d2d; color: #fff; }
+button { background: #3182ce; cursor: pointer; border: none; font-weight: bold; }
+.btn-export { background: #38a169; }
 
-/* =========================================
-   4. LISTAS VERTICAIS E CABEÇALHOS
-   ========================================= */
 .kanban-board { display: flex; flex-direction: column; gap: 20px; }
-.status-section { width: 100%; background-color: #252525; border-radius: 8px; border: 1px solid #333; }
-.status-header { padding: 15px; cursor: pointer; user-select: none; border-bottom: 1px solid #333; }
-.status-header h2 { display: inline-block; margin: 0; font-size: 16px; vertical-align: middle; }
-.header-a-fazer h2 { color: #ecc94b; }
-.header-em-andamento h2 { color: #63b3ed; }
-.header-concluido h2 { color: #68d391; }
-.task-list { list-style: none; padding: 10px; min-height: 50px; }
+.status-section { background: #252525; border-radius: 8px; border: 1px solid #333; }
+.status-header { padding: 10px; border-bottom: 1px solid #333; }
+.task-list { list-style: none; padding: 10px; }
 
-/* =========================================
-   5. CARTÕES DE TAREFA E METADADOS
-   ========================================= */
-.task-item { background-color: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; cursor: grab; }
-.task-item.dragging { opacity: 0.5; }
-.task-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.task-item { background: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; }
+.task-title-row { display: flex; justify-content: space-between; align-items: center; }
 .task-title { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; flex: 1; }
-.task-text { font-weight: bold; font-size: 15px; color: #fff; margin-right: 5px; }
+.task-text { font-weight: bold; }
 .completed .task-text { text-decoration: line-through; color: #888; }
 
-/* Botão de Setinha ao lado do Título */
-.btn-toggle-details { background: transparent; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 0 5px; outline: none; transition: 0.2s; display: flex; align-items: center;}
-.btn-toggle-details:hover { color: #fff; }
+.meta-tag { font-size: 11px; background: #1a202c; padding: 4px; border-radius: 4px; border: 1px solid #333; }
+.atrasado-tag { background: #742a2a; color: #fff; }
+.done-tag { background: #1c3829; color: #4ade80; }
+.date-edit { background: transparent; border: none; width: 105px; color: inherit; font-size: 11px; }
 
-/* Contadores no lado direito */
 .task-counters { display: flex; align-items: center; gap: 8px; }
-.counter-tag { font-size: 11px; background-color: #1a1a1a; padding: 4px 8px; border-radius: 4px; border: 1px solid #333; color: #aaa; font-weight: bold; }
+.counter-tag { font-size: 10px; background: #1a1a1a; padding: 2px 5px; border-radius: 3px; color: #aaa; }
+.btn-toggle-details { background: transparent; color: #888; font-size: 14px; }
 
-.meta-tag { font-size: 12px; background-color: #1a202c; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; width: fit-content; }
-.urg-alta { color: #fc8181; }
-.urg-media { color: #f6e05e; }
-.urg-baixa { color: #68d391; }
-.atrasado-tag { background-color: #742a2a; border-color: #9b2c2c; }
-.date-edit { padding: 2px 4px; font-size: 11px; background: transparent; border: none; color: inherit; font-family: inherit; width: 110px;}
-.date-edit::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-.meta-tag.done-tag { background: #1c3829; color: #4ade80; border-color: #22543d; font-weight: bold; }
-.meta-tag.done-tag .date-edit { color: #4ade80; border-bottom-color: #38a169; }
+.details-wrap { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #444; }
+.comments-section, .subtask-list { margin-bottom: 10px; }
+.comment-item { font-size: 12px; background: #1a1a1a; padding: 5px; margin-bottom: 2px; display: flex; justify-content: space-between; }
 
-/* =========================================
-   6. SUBTAREFAS E COMENTÁRIOS
-   ========================================= */
-.details-wrap.custom-details { margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px; }
-.subtask-list { list-style: none; margin-left: 10px; border-left: 2px solid #444; padding-left: 10px; }
-.subtask-item { margin-bottom: 10px; background-color: #222; padding: 8px; border-radius: 4px; }
-.subtask-header { display: flex; justify-content: space-between; align-items: center; }
-.comments-section { background-color: #1a1a1a; padding: 8px; border-radius: 4px; margin-top: 10px; }
-.comment-item { font-size: 12px; margin-bottom: 5px; color: #ccc; display: flex; justify-content: space-between; background: #2d2d2d; padding: 4px; border-radius: 3px;}
-.comment-input-group { display: flex; gap: 5px; margin-top: 5px; }
-.comment-input-group input { flex: 1; padding: 4px 8px; font-size: 12px; }
-.btn-small { padding: 4px 8px; font-size: 12px; }
-.btn-del-comment { background: transparent; color: #fc8181; border: none; cursor: pointer; font-size: 10px; }
-
-/* =========================================
-   7. TELA DE LOGIN
-   ========================================= */
+/* LOGIN */
 #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.login-box { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.login-box h2 { margin-bottom: 20px; font-size: 18px; color: white; }
-.login-box input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #444; border-radius: 4px; background: #151515; color: #fff; outline: none; }
-.login-buttons { display: flex; gap: 10px; margin-top: 10px; }
+.login-box { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; width: 320px; text-align: center; }
+.login-box input { width: 100%; margin-bottom: 10px; }
+.login-buttons { display: flex; gap: 10px; }
 .login-buttons button { flex: 1; }
-.btn-secondary { background: #4a5568 !important; }
-.btn-logout { background: #e53e3e; padding: 4px 8px; font-size: 11px; margin-left: 10px; border-radius: 4px; cursor: pointer; color: white; border: none; }
-.header-user { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px; font-size: 12px; color: #aaa; }
-#login-msg { font-size: 12px; margin-top: 15px; }
+.btn-secondary { background: #4a5568; }
+.header-user { text-align: right; margin-bottom: 10px; }
