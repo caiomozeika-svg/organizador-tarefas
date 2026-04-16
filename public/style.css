@@ -1,13 +1,78 @@
-/* TELA DE LOGIN */
-#login-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000;
-}
-.login-box {
-    background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333;
-    width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.login-box h2 { margin-bottom: 20px; font-size: 18px; }
+/* =========================================
+   1. RESET E ESTILO GERAL (FUNDO ESCURO)
+   ========================================= */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+
+/* =========================================
+   2. CONTAINER PRINCIPAL E CABEÇALHO
+   ========================================= */
+.container { max-width: 1200px; margin: 0 auto; background-color: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+h1 { text-align: center; margin-bottom: 20px; color: #fff; }
+
+/* =========================================
+   3. BARRA DE FERRAMENTAS E INPUTS
+   ========================================= */
+.toolbar, .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
+input, select, button { padding: 8px 12px; border: 1px solid #333; border-radius: 4px; background-color: #2d2d2d; color: #fff; outline: none; }
+input:focus, select:focus { border-color: #555; }
+button { background-color: #3182ce; color: white; cursor: pointer; border: none; font-weight: bold; transition: background 0.2s; }
+button:hover { background-color: #2b6cb0; }
+.btn-export { background-color: #38a169; }
+.btn-export:hover { background-color: #2f855a; }
+.btn-delete { background-color: transparent; border: none; font-size: 16px; cursor: pointer; padding: 0; margin-left: 10px; }
+
+/* =========================================
+   4. QUADRO KANBAN E COLUNAS
+   ========================================= */
+.kanban-board { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
+.status-section { flex: 1; min-width: 300px; background-color: #252525; border-radius: 8px; border: 1px solid #333; }
+.status-header { padding: 15px; cursor: pointer; user-select: none; border-bottom: 1px solid #333; }
+.header-a-fazer h2 { color: #ecc94b; font-size: 16px; }
+.header-em-andamento h2 { color: #63b3ed; font-size: 16px; }
+.header-concluido h2 { color: #68d391; font-size: 16px; }
+.task-list { list-style: none; padding: 10px; min-height: 50px; }
+
+/* =========================================
+   5. CARTÕES DE TAREFA
+   ========================================= */
+.task-item { background-color: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; cursor: grab; }
+.task-item.dragging { opacity: 0.5; }
+.task-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.task-title { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.task-text { font-weight: bold; font-size: 15px; color: #fff; }
+.completed .task-text { text-decoration: line-through; color: #888; }
+
+/* Metadados (Tags de Urgência, Datas, etc) */
+.meta-tag { font-size: 12px; background-color: #1a202c; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; width: fit-content; }
+.urg-alta { color: #fc8181; }
+.urg-media { color: #f6e05e; }
+.urg-baixa { color: #68d391; }
+.atrasado-tag { background-color: #742a2a; border-color: #9b2c2c; }
+.date-edit { padding: 2px 4px; font-size: 11px; background: transparent; border: none; color: inherit; font-family: inherit; width: 110px;}
+.date-edit::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+/* =========================================
+   6. SUBTAREFAS E COMENTÁRIOS
+   ========================================= */
+.details-wrap { margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px; }
+.details-summary { font-size: 12px; color: #aaa; cursor: pointer; margin-bottom: 10px; user-select: none; }
+.subtask-list { list-style: none; margin-left: 10px; border-left: 2px solid #444; padding-left: 10px; }
+.subtask-item { margin-bottom: 10px; background-color: #222; padding: 8px; border-radius: 4px; }
+.subtask-header { display: flex; justify-content: space-between; align-items: center; }
+.comments-section { background-color: #1a1a1a; padding: 8px; border-radius: 4px; margin-top: 10px; }
+.comment-item { font-size: 12px; margin-bottom: 5px; color: #ccc; display: flex; justify-content: space-between; background: #2d2d2d; padding: 4px; border-radius: 3px;}
+.comment-input-group { display: flex; gap: 5px; margin-top: 5px; }
+.comment-input-group input { flex: 1; padding: 4px 8px; font-size: 12px; }
+.btn-small { padding: 4px 8px; font-size: 12px; }
+.btn-del-comment { background: transparent; color: #fc8181; border: none; cursor: pointer; font-size: 10px; }
+
+/* =========================================
+   7. TELA DE LOGIN (A QUE VOCÊ TINHA SALVO)
+   ========================================= */
+#login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.login-box { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.login-box h2 { margin-bottom: 20px; font-size: 18px; color: white; }
 .login-box input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #444; border-radius: 4px; background: #151515; color: #fff; outline: none; }
 .login-buttons { display: flex; gap: 10px; margin-top: 10px; }
 .login-buttons button { flex: 1; }
