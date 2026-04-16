@@ -1,11 +1,11 @@
 /* =========================================
-   1. RESET E ESTILO GERAL (FUNDO ESCURO)
+   1. RESET E ESTILO GERAL
    ========================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #121212; color: #e0e0e0; padding: 20px; }
 
 /* =========================================
-   2. CONTAINER PRINCIPAL E CABEÇALHO
+   2. CONTAINER PRINCIPAL
    ========================================= */
 .container { max-width: 1200px; margin: 0 auto; background-color: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
 h1 { text-align: center; margin-bottom: 20px; color: #fff; }
@@ -28,10 +28,7 @@ button:hover { background-color: #2b6cb0; }
 .kanban-board { display: flex; flex-direction: column; gap: 20px; }
 .status-section { width: 100%; background-color: #252525; border-radius: 8px; border: 1px solid #333; }
 .status-header { padding: 15px; cursor: pointer; user-select: none; border-bottom: 1px solid #333; }
-
-/* 🔥 CORREÇÃO DA SETINHA: Força o título a ficar na mesma linha da seta */
 .status-header h2 { display: inline-block; margin: 0; font-size: 16px; vertical-align: middle; }
-
 .header-a-fazer h2 { color: #ecc94b; }
 .header-em-andamento h2 { color: #63b3ed; }
 .header-concluido h2 { color: #68d391; }
@@ -43,12 +40,17 @@ button:hover { background-color: #2b6cb0; }
 .task-item { background-color: #2d2d2d; margin-bottom: 10px; padding: 15px; border-radius: 6px; border: 1px solid #444; cursor: grab; }
 .task-item.dragging { opacity: 0.5; }
 .task-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
-
-/* 🔥 CORREÇÃO DOS CARDS E STATUS: Mudamos para "row" (linha) e ativamos o "wrap" para quebrar a linha se a tela for pequena */
 .task-title { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; flex: 1; }
-
 .task-text { font-weight: bold; font-size: 15px; color: #fff; margin-right: 5px; }
 .completed .task-text { text-decoration: line-through; color: #888; }
+
+/* Botão de Setinha ao lado do Título */
+.btn-toggle-details { background: transparent; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 0 5px; outline: none; transition: 0.2s; display: flex; align-items: center;}
+.btn-toggle-details:hover { color: #fff; }
+
+/* Contadores no lado direito */
+.task-counters { display: flex; align-items: center; gap: 8px; }
+.counter-tag { font-size: 11px; background-color: #1a1a1a; padding: 4px 8px; border-radius: 4px; border: 1px solid #333; color: #aaa; font-weight: bold; }
 
 .meta-tag { font-size: 12px; background-color: #1a202c; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #333; width: fit-content; }
 .urg-alta { color: #fc8181; }
@@ -57,16 +59,13 @@ button:hover { background-color: #2b6cb0; }
 .atrasado-tag { background-color: #742a2a; border-color: #9b2c2c; }
 .date-edit { padding: 2px 4px; font-size: 11px; background: transparent; border: none; color: inherit; font-family: inherit; width: 110px;}
 .date-edit::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-
-/* TAG DE CONCLUSÃO VERDE (Que você pediu) */
 .meta-tag.done-tag { background: #1c3829; color: #4ade80; border-color: #22543d; font-weight: bold; }
 .meta-tag.done-tag .date-edit { color: #4ade80; border-bottom-color: #38a169; }
 
 /* =========================================
    6. SUBTAREFAS E COMENTÁRIOS
    ========================================= */
-.details-wrap { margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px; }
-.details-summary { font-size: 12px; color: #aaa; cursor: pointer; margin-bottom: 10px; user-select: none; }
+.details-wrap.custom-details { margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px; }
 .subtask-list { list-style: none; margin-left: 10px; border-left: 2px solid #444; padding-left: 10px; }
 .subtask-item { margin-bottom: 10px; background-color: #222; padding: 8px; border-radius: 4px; }
 .subtask-header { display: flex; justify-content: space-between; align-items: center; }
