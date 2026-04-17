@@ -58,14 +58,32 @@
             </div>
 
             <div class="input-group">
-                <input type="text" id="taskInput" placeholder="+ Adicionar nova tarefa rápida..." onkeypress="if(event.key==='Enter') addTask()" style="flex: 1;">
-                <select id="requesterSelect"><option value="">👤 Para quem?</option><option value="Eu mesmo">Eu mesmo</option><option value="Aline">Aline</option><option value="Debora">Debora</option></select>
-                <select id="deptSelect"><option value="">🏢 Setor...</option><option value="Administrativo">Administrativo</option><option value="Comercial">Comercial</option></select>
+                <input type="text" id="taskInput" placeholder="+ Adicionar nova tarefa..." onkeypress="if(event.key==='Enter') addTask()" style="flex: 1;">
+                
+                <select id="requesterSelect" onchange="toggleRequesterInput()">
+                    <option value="">👤 Para quem?</option>
+                    <option value="Andrey">Andrey</option>
+                    <option value="Aline">Aline</option>
+                    <option value="Gabriel">Gabriel</option>
+                    <option value="Outro">Outro...</option>
+                </select>
+                <input type="text" id="customRequesterInput" placeholder="Digite o nome..." style="display:none; width: 130px;">
+                
+                <select id="deptSelect" onchange="toggleDeptInput()">
+                    <option value="">🏢 Setor...</option>
+                    <option value="RH">RH</option>
+                    <option value="Vendas">Vendas</option>
+                    <option value="Administrativo">Administrativo</option>
+                    <option value="Logística">Logística</option>
+                    <option value="Financeiro">Financeiro</option>
+                    <option value="Outro">Outro...</option>
+                </select>
+                <input type="text" id="customDeptInput" placeholder="Digite o setor..." style="display:none; width: 130px;">
+                
                 <button onclick="addTask()">Salvar</button>
             </div>
 
             <div class="kanban-board">
-                
                 <div class="list-header">
                     <div>Tarefa (Clique para abrir)</div>
                     <div>Resp. / Setor</div>
@@ -90,7 +108,6 @@
                     <div class="status-header header-concluido"><h2>✅ Concluído (<span id="count-concluido">0</span>)</h2></div>
                     <ul class="task-list" id="taskList-concluido"></ul>
                 </div>
-
             </div>
         </div>
     </div>
