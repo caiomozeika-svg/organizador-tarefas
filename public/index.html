@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Organizador</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Planejador</title> <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
     <div id="login-screen">
         <div class="login-box" id="box-login">
-            <h2>Meu Organizador</h2>
-            <input type="email" id="emailInput" placeholder="E-mail">
+            <h2>Planejador</h2> <input type="email" id="emailInput" placeholder="E-mail">
             <input type="password" id="passInput" placeholder="Senha">
             <div class="login-buttons">
                 <button onclick="handleLogin()">Entrar</button>
@@ -45,9 +43,7 @@
             <div class="header-user">
                 <button class="btn-logout" onclick="handleLogout()">Sair 🚪</button>
             </div>
-            <h1>Planejamento do Dia</h1>
-            
-            <div class="toolbar">
+            <h1>Planejador</h1> <div class="toolbar">
                 <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel</button>
                 <select id="filterMonth" onchange="renderTasks()">
                     <option value="">🗓️ Mês (Todos)</option>
@@ -60,25 +56,8 @@
             <div class="input-group">
                 <input type="text" id="taskInput" placeholder="+ Adicionar nova tarefa..." onkeypress="if(event.key==='Enter') addTask()" style="flex: 1;">
                 
-                <select id="requesterSelect" onchange="toggleRequesterInput()">
-                    <option value="">👤 Para quem?</option>
-                    <option value="Andrey">Andrey</option>
-                    <option value="Aline">Aline</option>
-                    <option value="Gabriel">Gabriel</option>
-                    <option value="Outro">Outro...</option>
-                </select>
-                <input type="text" id="customRequesterInput" placeholder="Digite o nome..." style="display:none; width: 130px;">
-                
-                <select id="deptSelect" onchange="toggleDeptInput()">
-                    <option value="">🏢 Setor...</option>
-                    <option value="RH">RH</option>
-                    <option value="Vendas">Vendas</option>
-                    <option value="Administrativo">Administrativo</option>
-                    <option value="Logística">Logística</option>
-                    <option value="Financeiro">Financeiro</option>
-                    <option value="Outro">Outro...</option>
-                </select>
-                <input type="text" id="customDeptInput" placeholder="Digite o setor..." style="display:none; width: 130px;">
+                <input type="text" id="requesterInput" placeholder="👤 Para quem?" style="width: 160px;">
+                <input type="text" id="deptInput" placeholder="🏢 Qual setor?" style="width: 160px;">
                 
                 <button onclick="addTask()">Salvar</button>
             </div>
